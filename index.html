@@ -582,6 +582,16 @@
             color: white;
         }
 
+        .priority-queued {
+            background: var(--accent-info);
+            color: var(--bg-primary);
+        }
+
+        .priority-suggestion {
+            background: var(--accent-purple);
+            color: white;
+        }
+
         .task-date {
             color: var(--text-muted);
             font-size: 0.8rem;
@@ -2215,11 +2225,29 @@
 
             const backlog = state.projects.filter(p => p.status === 'backlog');
             const inProgress = state.projects.filter(p => p.status === 'in-progress');
+            const review = state.projects.filter(p => p.status === 'review');
             const done = state.projects.filter(p => p.status === 'done');
+
+            // Add "Queued" tag for projects in "In Progress" beyond current active project
+            if (inProgress.length > 1) {
+                inProgress.slice(1).forEach(project => {
+                    if (!project.tags.includes('Queued')) {
+                        project.tags.push('Queued');
+                    }
+                });
+            }
+
+            // Add "Suggestion" tag for AI-generated project ideas in Backlog
+            backlog.forEach(project => {
+                if (project.suggestion && !project.tags.includes('Suggestion')) {
+                    project.tags.push('Suggestion');
+                }
+            });
 
             const columns = [
                 { title: 'Backlog', items: backlog, status: 'backlog' },
                 { title: 'In Progress', items: inProgress, status: 'in-progress' },
+                { title: 'Review', items: review, status: 'review' },
                 { title: 'Done', items: done, status: 'done' }
             ];
 
@@ -2230,16 +2258,27 @@
                         <button class="add-task-btn" onclick="addTask('${column.status}')">+ Add Task</button>
                     </div>
                     <div class="task-list">
-                        ${column.items.map(project => `
+                        ${column.items.map(project => {
+                            // Build tags HTML
+                            let tagsHTML = '';
+                            if (project.tags && project.tags.length > 0) {
+                                tagsHTML = project.tags.map(tag => 
+                                    `<span class="priority-badge priority-${tag.toLowerCase()}">${tag}</span>`
+                                ).join(' ');
+                            }
+                            
+                            return `
                             <div class="task-card" onclick="editTask('${project.id}')">
                                 <h4 class="task-title">${project.title}</h4>
                                 <p class="task-description">${project.description}</p>
                                 <div class="task-footer">
                                     <span class="priority-badge priority-${project.priority}">${project.priority}</span>
+                                    ${tagsHTML}
                                     <span class="task-date">${formatDate(project.createdAt)}</span>
                                 </div>
                             </div>
-                        `).join('')}
+                        `;
+                        }).join('')}
                     </div>
                 </div>
             `).join('');
@@ -2409,18 +2448,247 @@
             if (title && title.trim()) {
                 const description = prompt('Enter task description (optional):') || '';
                 const priority = prompt('Enter priority (high/medium/low):', 'medium') || 'medium';
+                const brief = prompt('Enter project brief (optional):') || '';
+                const requirements = prompt('Enter basic requirements (optional):') || '';
+                const iterationCount = parseInt(prompt('Enter iteration count (iterations before quality control):', '3')) || 3;
+                const deadline = prompt('Enter deadline (YYYY-MM-DD):') || '';
+                
+                // Create enhanced project object with all required fields
+                const newProject = {
+                    id: Date.now().toString(),
+                    title: title.trim(),
+                    description: description,
+                    brief: brief,
+                    requirements: requirements,
+                    iterationCount: iterationCount,
+                    deadline: deadline,
+                    status: status,
+                    priority: priority,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    tags: [],
+                    queued: false,
+                    suggestion: false
+                };
+                
+                // Add "Queued" tag for projects in "In Progress" beyond current active project
+                if (status === 'in-progress') {
+                    const inProgressProjects = state.projects.filter(p => p.status === 'in-progress');
+                    if (inProgressProjects.length > 0) {
+                        newProject.tags.push('Queued');
+                        newProject.queued = true;
+                    }
+                }
+                
+                // Add project to state
+                state.projects.push(newProject);
+                renderProjects();
+                saveToLocalStorage();
                 
                 // This would normally make an API call to the VPS
-                console.log('Adding task:', { title, description, priority, status });
+                console.log('Adding task:', newProject);
                 showNotification('Task added! (This would normally sync with your VPS)', 'success');
             }
         }
 
         // Edit a task
+        // Enhanced edit task function for comprehensive project detail editing
         function editTask(id) {
             const project = state.projects.find(p => p.id === id);
+            if (!project) return;
+            
+            // Create modal for detailed editing
+            const modalHTML = `
+                <div class="modal-overlay" id="editProjectModal" style="display:block;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:2000;">
+                    <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);max-width:600px;width:90%;max-height:80vh;overflow-y:auto;margin:5% auto;padding:var(--spacing-xl);">
+                        <h3 style="margin-bottom:var(--spacing-md);">Edit Project: ${project.title}</h3>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Title:</label>
+                            <input type="text" id="editTitle" value="${project.title}" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);">
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Description:</label>
+                            <textarea id="editDescription" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);min-height:80px;">${project.description || ''}</textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Project Brief:</label>
+                            <textarea id="editBrief" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);min-height:100px;">${project.brief || ''}</textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Basic Requirements:</label>
+                            <textarea id="editRequirements" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);min-height:100px;">${project.requirements || ''}</textarea>
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Iteration Count (iterations before quality control):</label>
+                            <input type="number" id="editIterationCount" value="${project.iterationCount || 3}" min="1" max="10" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);">
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Deadline:</label>
+                            <input type="date" id="editDeadline" value="${project.deadline || ''}" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);">
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Status:</label>
+                            <select id="editStatus" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);">
+                                <option value="backlog" ${project.status === 'backlog' ? 'selected' : ''}>Backlog</option>
+                                <option value="in-progress" ${project.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="review" ${project.status === 'review' ? 'selected' : ''}>Review</option>
+                                <option value="done" ${project.status === 'done' ? 'selected' : ''}>Done</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">Priority:</label>
+                            <select id="editPriority" style="width:100%;padding:var(--spacing-sm);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);">
+                                <option value="high" ${project.priority === 'high' ? 'selected' : ''}>High</option>
+                                <option value="medium" ${project.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                                <option value="low" ${project.priority === 'low' ? 'selected' : ''}>Low</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">
+                                <input type="checkbox" id="editQueued" ${project.queued ? 'checked' : ''} style="margin-right:var(--spacing-sm);">
+                                Queued (for overnight work)
+                            </label>
+                        </div>
+                        
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label style="display:block;margin-bottom:var(--spacing-xs);">
+                                <input type="checkbox" id="editSuggestion" ${project.suggestion ? 'checked' : ''} style="margin-right:var(--spacing-sm);">
+                                AI Suggestion
+                            </label>
+                        </div>
+                        
+                        <div class="modal-actions" style="display:flex;gap:var(--spacing-md);justify-content:flex-end;margin-top:var(--spacing-lg);">
+                            <button class="modal-btn cancel" onclick="closeEditProjectModal()" style="padding:var(--spacing-sm) var(--spacing-md);background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);cursor:pointer;">Cancel</button>
+                            <button class="modal-btn confirm" onclick="saveEditedProject('${project.id}')" style="padding:var(--spacing-sm) var(--spacing-md);background:var(--accent-primary);border:none;border-radius:var(--radius-md);color:var(--bg-primary);cursor:pointer;">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // Close edit project modal
+        function closeEditProjectModal() {
+            const modal = document.getElementById('editProjectModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Save edited project
+        async function saveEditedProject(projectId) {
+            const project = state.projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            // Get form values with validation
+            const title = document.getElementById('editTitle').value.trim();
+            if (!title) {
+                showNotification('Project title is required', 'error');
+                return;
+            }
+            
+            const description = document.getElementById('editDescription').value.trim();
+            const brief = document.getElementById('editBrief').value.trim();
+            const requirements = document.getElementById('editRequirements').value.trim();
+            const iterationCount = parseInt(document.getElementById('editIterationCount').value) || 3;
+            const deadline = document.getElementById('editDeadline').value;
+            const status = document.getElementById('editStatus').value;
+            const priority = document.getElementById('editPriority').value;
+            const queued = document.getElementById('editQueued').checked;
+            const suggestion = document.getElementById('editSuggestion').checked;
+            
+            // Validate deadline if provided
+            if (deadline && new Date(deadline) < new Date()) {
+                showNotification('Deadline cannot be in the past', 'error');
+                return;
+            }
+            
+            // Validate iteration count
+            if (iterationCount < 1 || iterationCount > 10) {
+                showNotification('Iteration count must be between 1 and 10', 'error');
+                return;
+            }
+            
+            // Update project
+            project.title = title;
+            project.description = description;
+            project.brief = brief;
+            project.requirements = requirements;
+            project.iterationCount = iterationCount;
+            project.deadline = deadline;
+            project.status = status;
+            project.priority = priority;
+            project.queued = queued;
+            project.suggestion = suggestion;
+            project.updatedAt = new Date().toISOString();
+            
+            // Update tags based on status and queued/suggestion flags
+            project.tags = [];
+            if (project.queued && project.status === 'in-progress') {
+                project.tags.push('Queued');
+            }
+            if (project.suggestion && project.status === 'backlog') {
+                project.tags.push('Suggestion');
+            }
+            
+            // In a real implementation, this would sync with the VPS API
+            console.log('Updated project:', project);
+            
+            // Close modal
+            closeEditProjectModal();
+            
+            // Re-render projects
+            renderProjects();
+            
+            // Save to localStorage
+            saveToLocalStorage();
+            
+            showNotification(`Project "${title}" updated successfully!`, 'success');
+        }
+
+        // Function to move a project between columns
+        function moveProject(projectId, newStatus) {
+            const project = state.projects.find(p => p.id === projectId);
             if (project) {
-                showNotification(`Editing task: ${project.title}\n\nThis would open a detailed edit modal in the full implementation.`, 'info');
+                // Update project status
+                project.status = newStatus;
+                project.updatedAt = new Date().toISOString();
+                
+                // Handle queued status for In Progress projects beyond the first
+                if (newStatus === 'in-progress') {
+                    const inProgressProjects = state.projects.filter(p => p.status === 'in-progress');
+                    if (inProgressProjects.length > 1) {
+                        // Mark all but the first as queued
+                        inProgressProjects.forEach((p, index) => {
+                            p.queued = index > 0;
+                            if (p.queued && !p.tags.includes('Queued')) {
+                                p.tags.push('Queued');
+                            } else if (!p.queued) {
+                                p.tags = p.tags.filter(tag => tag !== 'Queued');
+                            }
+                        });
+                    }
+                } else {
+                    // Remove queued status when moving out of In Progress
+                    project.queued = false;
+                    project.tags = project.tags.filter(tag => tag !== 'Queued');
+                }
+                
+                // Re-render the board
+                renderProjects();
+                saveToLocalStorage();
+                showNotification(`Project moved to ${newStatus}!`, 'success');
             }
         }
 
@@ -3344,6 +3612,7 @@
         window.togglePriority = togglePriority;
         window.addTask = addTask;
         window.editTask = editTask;
+        window.moveProject = moveProject;
         window.configureAgent = configureAgent;
         window.pauseAgent = pauseAgent;
         window.restartAgent = restartAgent;
