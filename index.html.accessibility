@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control - Jack's Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Core Colors */
+            --bg-primary: #050508;
+            --bg-secondary: rgba(255, 255, 255, 0.03);
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            
+            /* Accent Colors */
+            --accent-primary: #78A083;
+            --accent-success: #4CAF50;
+            --accent-warning: #FF9800;
+            --accent-error: #F44336;
+            --accent-info: #2196F3;
+            --accent-purple: #9C27B0;
+            
+            /* Status Colors */
+            --status-online: #4CAF50;
+            --status-offline: #F44336;
+            --status-busy: #FF9800;
+            --status-idle: #9E9E9E;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 2.5rem;
+            
+            /* Border Radius */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 50%;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.3);
+            
+            /* Animations */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Skip link for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 8px;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            z-index: 1000;
+        }
+
+        .skip-link:focus {
+            top: 6px;
+        }
+
+        /* Header Styles */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--spacing-md) var(--spacing-2xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+        }
+
+        .nav-tab {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-weight: 500;
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-tab:hover {
+            background: var(--bg-secondary);
+        }
+
+        .nav-tab.active {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .search-section {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .search-input {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            width: 200px;
+            transition: var(--transition-fast);
+        }
+
+        .search-input:focus {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(120, 160, 131, 0.2);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: var(--status-online);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: var(--status-offline);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: var(--spacing-2xl);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dashboard Tab */
+        .welcome-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .welcome-text {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .current-time {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: var(--transition-normal);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            /* Ensure minimum touch target size */
+            min-height: 120px;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .metric-accent {
+            height: 3px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            margin: -1px -1px 0 -1px;
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .metric-icon {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+        }
+
+        .metric-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 0.9rem;
+            color: var(--accent-success);
+        }
+
+        .metric-trend.negative {
+            color: var(--accent-error);
+        }
+
+        .activity-feed {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .activity-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .activity-item {
+            display: flex;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-timestamp {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            min-width: 120px;
+        }
+
+        .activity-message {
+            flex: 1;
+        }
+
+        .priorities-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .priorities-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .priorities-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .add-priority-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .add-priority-btn:hover {
+            opacity: 0.9;
+        }
+
+        .priority-list {
+            list-style: none;
+        }
+
+        .priority-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+        }
+
+        .priority-item:last-child {
+            border-bottom: none;
+        }
+
+        .priority-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            /* Ensure minimum touch target size */
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .priority-checkbox:checked {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .priority-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--bg-primary);
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .priority-text {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .priority-text.completed {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* Projects Tab - Kanban Board */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md);
+        }
+
+        .column-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .add-task-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .add-task-btn:hover {
+            opacity: 0.9;
+        }
+
+        .task-list {
+            min-height: 200px;
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            position: relative;
+            /* Ensure minimum touch target size */
+            min-height: 80px;
+        }
+
+        .task-card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .task-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .task-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-md);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .priority-badge {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background: var(--accent-error);
+            color: white;
+        }
+
+        .priority-medium {
+            background: var(--accent-warning);
+            color: var(--bg-primary);
+        }
+
+        .priority-low {
+            background: var(--accent-success);
+            color: white;
+        }
+
+        .task-date {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Insights Tab - Enhanced Productivity Analytics */
+        .insights-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .insight-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: var(--transition-normal);
+            position: relative;
+            /* Ensure minimum touch target size */
+            min-height: 150px;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+        }
+
+        .insight-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .insight-content {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .insight-metric {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: var(--spacing-md) 0;
+            color: var(--accent-primary);
+        }
+
+        .recommendation-list {
+            list-style: none;
+            margin-top: var(--spacing-md);
+        }
+
+        .recommendation-item {
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+        }
+
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+
+        .recommendation-action {
+            color: var(--accent-primary);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .recommendation-action:hover {
+            text-decoration: underline;
+        }
+
+        /* Trend visualization */
+        .trend-chart {
+            height: 80px;
+            margin: var(--spacing-md) 0;
+            position: relative;
+        }
+
+        .trend-line {
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .trend-area {
+            fill: rgba(120, 160, 131, 0.1);
+        }
+
+        /* Agents Tab - Enhanced Monitoring */
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .agent-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+            /* Ensure minimum touch target size */
+            min-height: 200px;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .agent-card.critical {
+            border-left: 4px solid var(--accent-error);
+        }
+
+        .agent-card.warning {
+            border-left: 4px solid var(--accent-warning);
+        }
+
+        .agent-card.healthy {
+            border-left: 4px solid var(--accent-success);
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .agent-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .agent-priority-badge {
+            background: var(--accent-purple);
+            color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .agent-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 0.85rem;
+        }
+
+        .agent-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: var(--radius-full);
+        }
+
+        .agent-status.online .agent-status-dot {
+            background: var(--status-online);
+            animation: pulse 2s infinite;
+        }
+
+        .agent-status.offline .agent-status-dot {
+            background: var(--status-offline);
+        }
+
+        .agent-status.busy .agent-status-dot {
+            background: var(--status-busy);
+        }
+
+        .agent-status.idle .agent-status-dot {
+            background: var(--status-idle);
+        }
+
+        .agent-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-item-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .metric-item-value {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .agent-capabilities {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .capabilities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .capability-tag {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .agent-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .agent-action-btn {
+            flex: 1;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+        }
+
+        .agent-action-btn:hover {
+            background: var(--bg-secondary);
+        }
+
+        .agent-action-btn.restart {
+            color: var(--accent-warning);
+        }
+
+        .agent-action-btn.pause {
+            color: var(--accent-info);
+        }
+
+        .agent-action-btn.configure {
+            color: var(--accent-primary);
+        }
+
+        .agent-health-bar {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-full);
+            margin-top: var(--spacing-sm);
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: var(--accent-success);
+            border-radius: var(--radius-full);
+            transition: var(--transition-normal);
+        }
+
+        .health-fill.warning {
+            background: var(--accent-warning);
+        }
+
+        .health-fill.critical {
+            background: var(--accent-error);
+        }
+
+        /* Historical Metrics Chart */
+        .agent-history {
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .history-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .history-chart {
+            height: 60px;
+            position: relative;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .history-line {
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .history-area {
+            fill: rgba(120, 160, 131, 0.1);
+        }
+
+        /* Agent Grouping */
+        .agent-groups {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        .agent-group-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        .agent-group-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        /* Agent Details Modal */
+        .agent-details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .agent-details-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .agent-details-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: var(--spacing-xl);
+        }
+
+        .agent-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .agent-details-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .details-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .details-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .detail-value {
+            font-weight: 600;
+        }
+
+        .activity-log {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .activity-log-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .log-item {
+            display: flex;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+            /* Ensure minimum touch target size */
+            min-height: 44px;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-timestamp {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            min-width: 120px;
+        }
+
+        .log-content {
+            flex: 1;
+        }
+
+        .log-agent {
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        /* Notes Tab */
+        .notes-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 400px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            padding: 0;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .notes-textarea:focus {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        .notes-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Notifications */
+        .notification-banner {
+            position: fixed;
+            top: 0;
+            right: 0;
+            margin: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--accent-info);
+            color: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .notification-banner.show {
+            transform: translateX(0);
+        }
+
+        .notification-close {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            background: none;
+            border: none;
+            color: var(--bg-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            background: var(--bg-card);
+            border: 1px solid var(--accent-error);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            text-align: center;
+            color: var(--accent-error);
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-success {
+            color: var(--accent-success);
+        }
+
+        .text-warning {
+            color: var(--accent-warning);
+        }
+
+        .text-error {
+            color: var(--accent-error);
+        }
+
+        .text-info {
+            color: var(--accent-info);
+        }
+
+        .text-purple {
+            color: var(--accent-purple);
+        }
+
+        /* Focus styles for accessibility */
+        :focus {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        /* Keyboard navigation indicator */
+        .keyboard-nav {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .keyboard-nav.show {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-md);
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+            
+            .search-section {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-input {
+                width: 150px;
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .metrics-grid,
+            .insights-container,
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+            
+            .notification-banner {
+                margin: var(--spacing-md);
+                width: calc(100% - 2 * var(--spacing-md));
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .header {
+                padding: var(--spacing-sm);
+            }
+            
+            .logo {
+                font-size: 1.25rem;
+            }
+            
+            .nav-tab {
+                padding: var(--spacing-xs) var(--spacing-sm);
+                font-size: 0.85rem;
+            }
+            
+            .search-input {
+                width: 120px;
+                font-size: 0.85rem;
+            }
+            
+            .main-content {
+                padding: var(--spacing-md);
+            }
+            
+            .welcome-text {
+                font-size: 1.5rem;
+            }
+            
+            .metric-value {
+                font-size: 1.5rem;
+            }
+            
+            .insight-metric {
+                font-size: 1.25rem;
+            }
+            
+            .agent-actions {
+                flex-direction: column;
+                gap: var(--spacing-xs);
+            }
+            
+            .agent-action-btn {
+                width: 100%;
+            }
+        }
+
+        /* Performance indicators */
+        .performance-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: var(--radius-full);
+            margin-right: var(--spacing-xs);
+        }
+
+        .performance-good {
+            background: var(--accent-success);
+        }
+
+        .performance-warning {
+            background: var(--accent-warning);
+        }
+
+        .performance-critical {
+            background: var(--accent-error);
+        }
+
+        /* Collaboration indicators */
+        .collaboration-badge {
+            background: var(--accent-purple);
+            color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: var(--spacing-xs);
+        }
+
+        /* Security indicators */
+        .security-badge {
+            background: var(--accent-warning);
+            color: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: var(--spacing-xs);
+        }
+
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            :root {
+                --bg-primary: #000000;
+                --bg-secondary: #333333;
+                --bg-card: #222222;
+                --border-color: #ffffff;
+                --text-primary: #ffffff;
+                --text-secondary: #cccccc;
+                --text-muted: #999999;
+            }
+            
+            .metric-accent,
+            .agent-card.critical,
+            .agent-card.warning,
+            .agent-card.healthy {
+                border: 2px solid currentColor;
+            }
+            
+            .status-dot {
+                border: 1px solid currentColor;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="logo-section">
+            <div class="logo" role="heading" aria-level="1">🚀 Mission Control</div>
+        </div>
+        
+        <nav class="nav-tabs" role="navigation" aria-label="Main navigation">
+            <button class="nav-tab active" data-tab="dashboard" aria-selected="true" tabindex="0">📊 Dashboard</button>
+            <button class="nav-tab" data-tab="projects" aria-selected="false" tabindex="0">📋 Projects</button>
+            <button class="nav-tab" data-tab="insights" aria-selected="false" tabindex="0">💡 Insights</button>
+            <button class="nav-tab" data-tab="agents" aria-selected="false" tabindex="0">🤖 Agents</button>
+            <button class="nav-tab" data-tab="notes" aria-selected="false" tabindex="0">📝 Notes</button>
+        </nav>
+        
+        <div class="search-section">
+            <input type="text" class="search-input" placeholder="Search..." id="searchInput" aria-label="Search dashboard content">
+            <div class="status-indicator" aria-live="polite">
+                <span class="status-dot" id="connectionStatus" aria-label="Connection status"></span>
+                <span id="connectionText">Connected</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Notification Banner -->
+    <div class="notification-banner" id="notificationBanner" role="alert" aria-live="assertive">
+        <button class="notification-close" id="notificationClose" aria-label="Close notification">×</button>
+        <div id="notificationContent"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content" role="main">
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboardTab" role="tabpanel" aria-labelledby="dashboard-tab">
+            <div class="welcome-section">
+                <h1 class="welcome-text" id="welcomeMessage">Good morning, Jack</h1>
+                <p class="current-time" id="currentTime">Tuesday, March 10, 2026 - 12:48 PM</p>
+            </div>
+            
+            <div class="metrics-grid" id="metricsGrid" role="region" aria-label="Metrics dashboard">
+                <!-- Metrics will be populated by JS -->
+                <div class="loading">Loading metrics...</div>
+            </div>
+            
+            <div class="activity-feed" id="activityFeed" role="region" aria-label="Recent activity feed">
+                <h2 class="activity-header">Recent Activity</h2>
+                <div class="loading">Loading activity...</div>
+            </div>
+            
+            <div class="priorities-section" role="region" aria-label="Top priorities">
+                <div class="priorities-header">
+                    <h2 class="priorities-title">Top Priorities</h2>
+                    <button class="add-priority-btn" id="addPriorityBtn" aria-label="Add new priority">+ Add Priority</button>
+                </div>
+                <ul class="priority-list" id="priorityList" role="list">
+                    <!-- Priorities will be populated by JS -->
+                    <div class="loading">Loading priorities...</div>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Projects Tab -->
+        <div class="tab-content" id="projectsTab" role="tabpanel" aria-labelledby="projects-tab">
+            <div class="kanban-board" id="kanbanBoard" role="region" aria-label="Project kanban board">
+                <!-- Kanban columns will be populated by JS -->
+                <div class="loading">Loading projects...</div>
+            </div>
+        </div>
+
+        <!-- Insights Tab - Enhanced Productivity Analytics -->
+        <div class="tab-content" id="insightsTab" role="tabpanel" aria-labelledby="insights-tab">
+            <div class="insights-container" id="insightsContainer" role="region" aria-label="Productivity insights">
+                <!-- Insights will be populated by JS -->
+                <div class="loading">Loading insights...</div>
+            </div>
+        </div>
+
+        <!-- Agents Tab - Enhanced Monitoring -->
+        <div class="tab-content" id="agentsTab" role="tabpanel" aria-labelledby="agents-tab">
+            <div class="agents-grid" id="agentsGrid" role="region" aria-label="Agent monitoring dashboard">
+                <!-- Agent cards will be populated by JS -->
+                <div class="loading">Loading agents...</div>
+            </div>
+            
+            <div class="activity-log" id="agentsActivityLog" role="region" aria-label="Agent activity log">
+                <h2 class="activity-log-header">Agent Activity Log</h2>
+                <div class="loading">Loading activity log...</div>
+            </div>
+        </div>
+
+        <!-- Notes Tab -->
+        <div class="tab-content" id="notesTab" role="tabpanel" aria-labelledby="notes-tab">
+            <div class="notes-container" role="region" aria-label="Notes editor">
+                <textarea class="notes-textarea" id="notesTextarea" placeholder="Your notes here..." aria-label="Notes editor"></textarea>
+                <div class="notes-footer">
+                    <span id="charCount">0 characters</span>
+                    <span id="lastSaved">Last saved: Just now</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Complete Project Modal -->
+    <div class="modal-overlay hidden" id="completeProjectModal" role="dialog" aria-modal="true" aria-labelledby="completeProjectModalTitle">
+        <div class="modal-content">
+            <h3 id="completeProjectModalTitle">✅ Confirm Project Completion</h3>
+            <p>You're about to mark a project as complete. This will increment your PCS counter from <span id="currentPcsCount">0</span> to <span id="nextPcsCount">1</span>.</p>
+            <p><strong>Are you sure this project meets your completion criteria?</strong></p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="hideCompleteProjectModal()">Cancel</button>
+                <button class="modal-btn confirm" onclick="confirmProjectCompletion()">Confirm Completion</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard navigation help -->
+    <div class="keyboard-nav" id="keyboardNav">
+        Press '?' for keyboard shortcuts
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            VPS_URL: 'http://110.232.114.226:3001',
+            POLL_INTERVAL: 5000,
+            MAX_ACTIVITY_ITEMS: 50,
+            NOTIFICATION_DURATION: 5000
+        };
+
+        // State management
+        let state = {
+            metrics: null,
+            projects: [],
+            agents: [],
+            activityLog: [],
+            priorities: [],
+            notes: '',
+            connectionStatus: 'connected',
+            notifications: [],
+            isVisible: true, // Track if tab is visible
+            keyboardHelpVisible: false
+        };
+
+        // DOM Elements
+        const elements = {
+            tabs: document.querySelectorAll('.nav-tab'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            searchInput: document.getElementById('searchInput'),
+            connectionStatus: document.getElementById('connectionStatus'),
+            connectionText: document.getElementById('connectionText'),
+            welcomeMessage: document.getElementById('welcomeMessage'),
+            currentTime: document.getElementById('currentTime'),
+            metricsGrid: document.getElementById('metricsGrid'),
+            activityFeed: document.getElementById('activityFeed'),
+            priorityList: document.getElementById('priorityList'),
+            addPriorityBtn: document.getElementById('addPriorityBtn'),
+            kanbanBoard: document.getElementById('kanbanBoard'),
+            insightsContainer: document.getElementById('insightsContainer'),
+            agentsGrid: document.getElementById('agentsGrid'),
+            agentsActivityLog: document.getElementById('agentsActivityLog'),
+            notesTextarea: document.getElementById('notesTextarea'),
+            charCount: document.getElementById('charCount'),
+            lastSaved: document.getElementById('lastSaved'),
+            notificationBanner: document.getElementById('notificationBanner'),
+            notificationContent: document.getElementById('notificationContent'),
+            notificationClose: document.getElementById('notificationClose'),
+            keyboardNav: document.getElementById('keyboardNav')
+        };
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            loadFromLocalStorage();
+            updateWelcomeMessage();
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            startDataPolling();
+            setupNotesAutoSave();
+            setupNotificationSystem();
+            setupVisibilityTracking();
+            setupKeyboardNavigation();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    switchTab(tabId);
+                });
+                
+                // Ensure tabs are keyboard navigable
+                tab.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const tabId = tab.dataset.tab;
+                        switchTab(tabId);
+                    }
+                });
+            });
+
+            // Search functionality
+            elements.searchInput.addEventListener('input', handleSearch);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Prevent default behavior for our shortcuts
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    elements.searchInput.focus();
+                    showKeyboardHelp();
+                }
+                // Ctrl/Cmd + S for save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveToLocalStorage();
+                    showNotification('Notes saved successfully!', 'success');
+                }
+                // Ctrl/Cmd + Shift + P for adding priority
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {
+                    e.preventDefault();
+                    addPriority();
+                }
+                // Ctrl/Cmd + Shift + N for new note
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'n') {
+                    e.preventDefault();
+                    switchTab('notes');
+                    elements.notesTextarea.focus();
+                }
+                // Alt + 1-5 for tab navigation
+                if (e.altKey && e.key >= '1' && e.key <= '5') {
+                    e.preventDefault();
+                    const tabIndex = parseInt(e.key) - 1;
+                    const tabIds = ['dashboard', 'projects', 'insights', 'agents', 'notes'];
+                    if (tabIndex < tabIds.length) {
+                        switchTab(tabIds[tabIndex]);
+                    }
+                }
+                // Escape key to close modals/notifications
+                if (e.key === 'Escape') {
+                    hideCompleteProjectModal();
+                    hideNotification();
+                }
+                // Question mark for keyboard help
+                if (e.key === '?') {
+                    e.preventDefault();
+                    toggleKeyboardHelp();
+                }
+            });
+
+            // Priority management
+            elements.addPriorityBtn.addEventListener('click', addPriority);
+
+            // Notification close
+            elements.notificationClose.addEventListener('click', hideNotification);
+
+            // Modal close on outside click
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('completeProjectModal');
+                if (e.target === modal) {
+                    hideCompleteProjectModal();
+                }
+            });
+        }
+
+        // Set up keyboard navigation help
+        function setupKeyboardNavigation() {
+            // Show keyboard help when user starts using keyboard
+            let keyboardUsed = false;
+            document.addEventListener('keydown', () => {
+                if (!keyboardUsed) {
+                    keyboardUsed = true;
+                    showKeyboardHelpIndicator();
+                }
+            });
+        }
+
+        function showKeyboardHelpIndicator() {
+            elements.keyboardNav.classList.add('show');
+            setTimeout(() => {
+                elements.keyboardNav.classList.remove('show');
+            }, 3000);
+        }
+
+        function toggleKeyboardHelp() {
+            state.keyboardHelpVisible = !state.keyboardHelpVisible;
+            if (state.keyboardHelpVisible) {
+                showKeyboardHelp();
+            } else {
+                hideKeyboardHelp();
+            }
+        }
+
+        function showKeyboardHelp() {
+            // Create or show keyboard help dialog
+            if (!document.getElementById('keyboardHelpDialog')) {
+                const dialog = document.createElement('div');
+                dialog.id = 'keyboardHelpDialog';
+                dialog.className = 'agent-details-modal show';
+                dialog.innerHTML = `
+                    <div class="agent-details-content">
+                        <div class="agent-details-header">
+                            <h3>Keyboard Shortcuts</h3>
+                            <button class="agent-details-close" onclick="hideKeyboardHelp()">×</button>
+                        </div>
+                        <div class="details-section">
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <div class="detail-label">Navigation</div>
+                                    <div class="detail-value">
+                                        <p>Alt + 1: Dashboard</p>
+                                        <p>Alt + 2: Projects</p>
+                                        <p>Alt + 3: Insights</p>
+                                        <p>Alt + 4: Agents</p>
+                                        <p>Alt + 5: Notes</p>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Actions</div>
+                                    <div class="detail-value">
+                                        <p>Ctrl/Cmd + K: Focus search</p>
+                                        <p>Ctrl/Cmd + S: Save notes</p>
+                                        <p>Ctrl/Cmd + Shift + P: Add priority</p>
+                                        <p>Ctrl/Cmd + Shift + N: New note</p>
+                                        <p>Esc: Close dialogs</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(dialog);
+            } else {
+                document.getElementById('keyboardHelpDialog').classList.add('show');
+            }
+        }
+
+        function hideKeyboardHelp() {
+            const dialog = document.getElementById('keyboardHelpDialog');
+            if (dialog) {
+                dialog.classList.remove('show');
+                setTimeout(() => {
+                    if (dialog.parentNode) {
+                        dialog.parentNode.removeChild(dialog);
+                    }
+                }, 300);
+            }
+            state.keyboardHelpVisible = false;
+        }
+
+        // Track tab visibility for adaptive polling
+        function setupVisibilityTracking() {
+            document.addEventListener('visibilitychange', () => {
+                state.isVisible = !document.hidden;
+                if (state.isVisible) {
+                    // Refresh data when tab becomes visible
+                    fetchData();
+                }
+            });
+        }
+
+        // Switch between tabs
+        function switchTab(tabId) {
+            // Update active tab
+            elements.tabs.forEach(tab => {
+                const isActive = tab.dataset.tab === tabId;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', isActive.toString());
+            });
+
+            // Update active content
+            elements.tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === tabId + 'Tab');
+                content.setAttribute('aria-hidden', (content.id !== tabId + 'Tab').toString());
+            });
+            
+            // Update URL hash for bookmarking
+            window.location.hash = tabId;
+        }
+
+        // Handle search input
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            // Implement search logic across all tabs
+            console.log('Search term:', searchTerm);
+        }
+
+        // Update welcome message based on time of day
+        function updateWelcomeMessage() {
+            const hour = new Date().getHours();
+            let greeting;
+            if (hour < 12) {
+                greeting = 'Good morning';
+            } else if (hour < 18) {
+                greeting = 'Good afternoon';
+            } else {
+                greeting = 'Good evening';
+            }
+            elements.welcomeMessage.textContent = `${greeting}, Jack`;
+        }
+
+        // Update current time display
+        function updateCurrentTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            elements.currentTime.textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Load data from localStorage
+        function loadFromLocalStorage() {
+            try {
+                const savedState = localStorage.getItem('missionControlState');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    state.priorities = parsedState.priorities || [];
+                    state.notes = parsedState.notes || '';
+                    renderPriorities();
+                    elements.notesTextarea.value = state.notes;
+                    updateCharCount();
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                showNotification('Error loading saved data', 'error');
+            }
+        }
+
+        // Save data to localStorage
+        function saveToLocalStorage() {
+            try {
+                const saveState = {
+                    priorities: state.priorities,
+                    notes: state.notes,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('missionControlState', JSON.stringify(saveState));
+                return true;
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                showNotification('Error saving data', 'error');
+                return false;
+            }
+        }
+
+        // Setup notes auto-save
+        function setupNotesAutoSave() {
+            let saveTimeout;
+            elements.notesTextarea.addEventListener('input', () => {
+                state.notes = elements.notesTextarea.value;
+                updateCharCount();
+                
+                // Debounce save
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    if (saveToLocalStorage()) {
+                        elements.lastSaved.textContent = 'Last saved: Just now';
+                        setTimeout(() => {
+                            elements.lastSaved.textContent = `Last saved: ${new Date().toLocaleTimeString()}`;
+                        }, 2000);
+                    }
+                }, 1000);
+            });
+        }
+
+        // Update character count
+        function updateCharCount() {
+            const count = elements.notesTextarea.value.length;
+            elements.charCount.textContent = `${count} characters`;
+        }
+
+        // Add a new priority
+        function addPriority() {
+            const priorityText = prompt('Enter your priority:');
+            if (priorityText && priorityText.trim()) {
+                const newPriority = {
+                    id: Date.now().toString(),
+                    text: priorityText.trim(),
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                };
+                state.priorities.push(newPriority);
+                renderPriorities();
+                saveToLocalStorage();
+                showNotification('Priority added successfully!', 'success');
+            }
+        }
+
+        // Toggle priority completion
+        function togglePriority(id) {
+            const priority = state.priorities.find(p => p.id === id);
+            if (priority) {
+                priority.completed = !priority.completed;
+                renderPriorities();
+                saveToLocalStorage();
+                showNotification(`Priority ${priority.completed ? 'completed' : 'marked incomplete'}!`, 'info');
+            }
+        }
+
+        // Render priorities list
+        function renderPriorities() {
+            if (!state.priorities.length) {
+                elements.priorityList.innerHTML = '<li class="text-center text-muted">No priorities yet. Add one above!</li>';
+                return;
+            }
+
+            elements.priorityList.innerHTML = state.priorities.map(priority => `
+                <li class="priority-item" role="listitem">
+                    <input type="checkbox" class="priority-checkbox" id="priority-${priority.id}" ${priority.completed ? 'checked' : ''} 
+                           onchange="togglePriority('${priority.id}')">
+                    <label for="priority-${priority.id}" class="priority-text ${priority.completed ? 'completed' : ''}">${priority.text}</label>
+                </li>
+            `).join('');
+        }
+
+        // Start polling data from VPS
+        function startDataPolling() {
+            fetchData();
+            setInterval(fetchData, CONFIG.POLL_INTERVAL);
+        }
+
+        // Fetch data from VPS endpoints with proper error handling
+        async function fetchData() {
+            // Don't poll if tab is not visible
+            if (!state.isVisible) {
+                return;
+            }
+
+            try {
+                // Fetch all endpoints in parallel
+                const endpoints = [
+                    fetch(`${CONFIG.VPS_URL}/api/metrics`),
+                    fetch(`${CONFIG.VPS_URL}/api/projects`),
+                    fetch(`${CONFIG.VPS_URL}/api/agents`),
+                    fetch(`${CONFIG.VPS_URL}/api/activity`)
+                ];
+
+                const responses = await Promise.all(endpoints);
+
+                // Check if all responses are ok
+                if (responses.every(res => res.ok)) {
+                    const [metricsRes, projectsRes, agentsRes, activityRes] = responses;
+                    const [metrics, projects, agents, activity] = await Promise.all([
+                        metricsRes.json(),
+                        projectsRes.json(),
+                        agentsRes.json(),
+                        activityRes.json()
+                    ]);
+
+                    // Update state
+                    state.metrics = metrics;
+                    state.projects = projects;
+                    state.agents = agents;
+                    state.activityLog = activity.slice(0, CONFIG.MAX_ACTIVITY_ITEMS);
+                    
+                    state.connectionStatus = 'connected';
+                    updateConnectionStatus();
+                    
+                    // Render all tabs
+                    renderMetrics();
+                    renderProjects();
+                    renderAgents();
+                    renderActivityFeed();
+                    renderInsights();
+                    
+                    // Check for alerts and notifications
+                    checkAlerts();
+                } else {
+                    throw new Error('One or more API endpoints failed');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                state.connectionStatus = 'disconnected';
+                updateConnectionStatus();
+                
+                // Only show error in dashboard tab to avoid spamming
+                if (document.querySelector('.tab-content.active').id === 'dashboardTab') {
+                    showErrorMessage('No connection to OpenClaw VPS');
+                }
+            }
+        }
+
+        // Update connection status display
+        function updateConnectionStatus() {
+            if (state.connectionStatus === 'connected') {
+                elements.connectionStatus.className = 'status-dot';
+                elements.connectionText.textContent = 'Connected';
+                elements.connectionStatus.setAttribute('aria-label', 'Connected to server');
+            } else {
+                elements.connectionStatus.className = 'status-dot offline';
+                elements.connectionText.textContent = 'Disconnected';
+                elements.connectionStatus.setAttribute('aria-label', 'Disconnected from server');
+            }
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            elements.metricsGrid.innerHTML = `<div class="error-message">${message}</div>`;
+            elements.activityFeed.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        // Render metrics cards
+        function renderMetrics() {
+            if (!state.metrics) return;
+
+            const metricsHTML = `
+                <div class="metric-card" role="region" aria-label="PCS Progress metric">
+                    <div class="metric-accent"></div>
+                    <div class="metric-header">
+                        <span class="metric-icon" aria-hidden="true">🎯</span>
+                        <span class="metric-label">PCS Progress</span>
+                    </div>
+                    <div class="metric-value">${state.metrics.pcsProgress}/42</div>
+                    <div class="metric-trend">
+                        <span>▲ 0 this week</span>
+                    </div>
+                    <button class="complete-project-btn" onclick="showCompleteProjectModal()" aria-label="Complete project">✅ Complete Project</button>
+                </div>
+                <div class="metric-card" role="region" aria-label="Active Projects metric">
+                    <div class="metric-accent"></div>
+                    <div class="metric-header">
+                        <span class="metric-icon" aria-hidden="true">🏗️</span>
+                        <span class="metric-label">Active Projects</span>
+                    </div>
+                    <div class="metric-value">${state.metrics.activeProjects}</div>
+                    <div class="metric-trend">
+                        <span>Steady</span>
+                    </div>
+                </div>
+                <div class="metric-card" role="region" aria-label="Tasks Today metric">
+                    <div class="metric-accent"></div>
+                    <div class="metric-header">
+                        <span class="metric-icon" aria-hidden="true">✅</span>
+                        <span class="metric-label">Tasks Today</span>
+                    </div>
+                    <div class="metric-value">${state.metrics.tasksToday}</div>
+                    <div class="metric-trend">
+                        <span>▲ 0 vs yesterday</span>
+                    </div>
+                </div>
+                <div class="metric-card" role="region" aria-label="Days to Goal metric">
+                    <div class="metric-accent"></div>
+                    <div class="metric-header">
+                        <span class="metric-icon" aria-hidden="true">⏰</span>
+                        <span class="metric-label">Days to Goal</span>
+                    </div>
+                    <div class="metric-value">${state.metrics.daysToGoal}</div>
+                    <div class="metric-trend ${state.metrics.daysToGoal < 300 ? 'negative' : ''}">
+                        <span>${state.metrics.daysToGoal < 300 ? '⚠️ Critical' : 'On track'}</span>
+                    </div>
+                </div>
+            `;
+            elements.metricsGrid.innerHTML = metricsHTML;
+        }
+
+        // Render activity feed
+        function renderActivityFeed() {
+            if (!state.activityLog.length) {
+                elements.activityFeed.innerHTML = '<div class="text-center text-muted">No recent activity</div>';
+                return;
+            }
+
+            const activityHTML = state.activityLog.map((item, index) => `
+                <div class="activity-item" role="listitem" tabindex="0">
+                    <span class="activity-timestamp">${formatTimestamp(item.timestamp)}</span>
+                    <span class="activity-message">${item.message}</span>
+                </div>
+            `).join('');
+
+            elements.activityFeed.innerHTML = `
+                <h2 class="activity-header">Recent Activity</h2>
+                <div role="list">
+                    ${activityHTML}
+                </div>
+            `;
+        }
+
+        // Render projects (Kanban board)
+        function renderProjects() {
+            if (!state.projects.length) {
+                elements.kanbanBoard.innerHTML = '<div class="text-center text-muted">No projects yet</div>';
+                return;
+            }
+
+            const backlog = state.projects.filter(p => p.status === 'backlog');
+            const inProgress = state.projects.filter(p => p.status === 'in-progress');
+            const done = state.projects.filter(p => p.status === 'done');
+
+            const columns = [
+                { title: 'Backlog', items: backlog, status: 'backlog' },
+                { title: 'In Progress', items: inProgress, status: 'in-progress' },
+                { title: 'Done', items: done, status: 'done' }
+            ];
+
+            const kanbanHTML = columns.map(column => `
+                <div class="kanban-column" role="region" aria-label="${column.title} column">
+                    <div class="column-header">
+                        <h3 class="column-title">${column.title}</h3>
+                        <button class="add-task-btn" onclick="addTask('${column.status}')" aria-label="Add task to ${column.title}">+ Add Task</button>
+                    </div>
+                    <div class="task-list" role="list">
+                        ${column.items.map(project => `
+                            <div class="task-card" onclick="editTask('${project.id}')" role="button" tabindex="0" aria-label="Task: ${project.title}">
+                                <h4 class="task-title">${project.title}</h4>
+                                <p class="task-description">${project.description}</p>
+                                <div class="task-footer">
+                                    <span class="priority-badge priority-${project.priority}">${project.priority}</span>
+                                    <span class="task-date">${formatDate(project.createdAt)}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+
+            elements.kanbanBoard.innerHTML = kanbanHTML;
+        }
+
+        // Render agents
+        function renderAgents() {
+            if (!state.agents.length) {
+                elements.agentsGrid.innerHTML = '<div class="text-center text-muted">No agents running</div>';
+                return;
+            }
+
+            const agentsHTML = state.agents.map(agent => {
+                // Calculate health scores based on research recommendations
+                const cpuHealth = agent.health.cpu < 80 ? 'good' : agent.health.cpu < 90 ? 'warning' : 'critical';
+                const memoryHealth = agent.health.memory < 800 ? 'good' : agent.health.memory < 900 ? 'warning' : 'critical';
+                const responseHealth = agent.health.responseTime < 200 ? 'good' : agent.health.responseTime < 500 ? 'warning' : 'critical';
+                
+                return `
+                    <div class="agent-card" role="region" aria-label="Agent: ${agent.name}, status: ${agent.status}">
+                        <div class="agent-header">
+                            <h3 class="agent-name">${agent.name}</h3>
+                            <div class="agent-status ${agent.status}" aria-label="Status: ${agent.status}">
+                                <span class="agent-status-dot" aria-hidden="true"></span>
+                                <span>${agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}</span>
+                            </div>
+                        </div>
+                        <div class="agent-metrics">
+                            <div class="metric-item">
+                                <span class="metric-item-label">CPU Usage</span>
+                                <span class="metric-item-value">
+                                    ${agent.health.cpu}% 
+                                    <span class="performance-indicator performance-${cpuHealth}" aria-label="Performance: ${cpuHealth}"></span>
+                                </span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-item-label">Memory</span>
+                                <span class="metric-item-value">
+                                    ${agent.health.memory}MB 
+                                    <span class="performance-indicator performance-${memoryHealth}" aria-label="Performance: ${memoryHealth}"></span>
+                                </span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-item-label">Response Time</span>
+                                <span class="metric-item-value">
+                                    ${agent.health.responseTime}ms 
+                                    <span class="performance-indicator performance-${responseHealth}" aria-label="Performance: ${responseHealth}"></span>
+                                </span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-item-label">Uptime</span>
+                                <span class="metric-item-value">${formatUptime(agent.uptimeSeconds)}</span>
+                            </div>
+                        </div>
+                        <div class="agent-capabilities">
+                            <div class="capabilities-list" role="list" aria-label="Agent capabilities">
+                                ${agent.capabilities.map(cap => `<span class="capability-tag" role="listitem">${cap}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="agent-health-bar" aria-label="Health indicator">
+                            <div class="health-fill ${cpuHealth === 'critical' ? 'critical' : cpuHealth === 'warning' ? 'warning' : ''}" 
+                                 style="width: ${Math.min(100, agent.health.cpu)}%"></div>
+                        </div>
+                        <div class="agent-actions">
+                            <button class="agent-action-btn configure" onclick="configureAgent('${agent.id}')" aria-label="Configure ${agent.name}">Configure</button>
+                            <button class="agent-action-btn pause" onclick="pauseAgent('${agent.id}')" aria-label="Pause ${agent.name}">Pause</button>
+                            <button class="agent-action-btn restart" onclick="restartAgent('${agent.id}')" aria-label="Restart ${agent.name}">Restart</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            elements.agentsGrid.innerHTML = agentsHTML;
+        }
+
+        // Render insights (enhanced productivity analytics)
+        function renderInsights() {
+            // Remove fake productivity insights endpoint since it doesn't exist
+            // Replace with useful insights based on actual available data
+            
+            const pcsProgress = state.metrics ? state.metrics.pcsProgress : 0;
+            const daysToGoal = state.metrics ? state.metrics.daysToGoal : 297;
+            const activeProjects = state.metrics ? state.metrics.activeProjects : 0;
+            
+            const insightsHTML = `
+                <div class="insight-card" role="region" aria-label="Project Completion Status">
+                    <div class="insight-header">
+                        <span class="insight-icon" aria-hidden="true">📊</span>
+                        <h3 class="insight-title">Project Completion Status</h3>
+                    </div>
+                    <div class="insight-content">
+                        Current progress toward your 42-project goal.
+                        <div class="insight-metric">${pcsProgress}/42</div>
+                        <p>You have ${42 - pcsProgress} projects remaining to reach your goal by January 1st, 2027.</p>
+                    </div>
+                </div>
+                <div class="insight-card" role="region" aria-label="Timeline Pressure">
+                    <div class="insight-header">
+                        <span class="insight-icon" aria-hidden="true">⏰</span>
+                        <h3 class="insight-title">Timeline Pressure</h3>
+                    </div>
+                    <div class="insight-content">
+                        Days remaining until your deadline.
+                        <div class="insight-metric">${daysToGoal} days</div>
+                        <p>You need to complete approximately ${(42 - pcsProgress) / (daysToGoal / 7)} projects per week to stay on track.</p>
+                    </div>
+                </div>
+                <div class="insight-card" role="region" aria-label="Active Workload">
+                    <div class="insight-header">
+                        <span class="insight-icon" aria-hidden="true">🏗️</span>
+                        <h3 class="insight-title">Active Workload</h3>
+                    </div>
+                    <div class="insight-content">
+                        Current projects in progress.
+                        <div class="insight-metric">${activeProjects} projects</div>
+                        <p>Consider your capacity when starting new projects to maintain quality and avoid burnout.</p>
+                    </div>
+                </div>
+                <div class="insight-card" role="region" aria-label="Agent Team Status">
+                    <div class="insight-header">
+                        <span class="insight-icon" aria-hidden="true">🤖</span>
+                        <h3 class="insight-title">Agent Team Status</h3>
+                    </div>
+                    <div class="insight-content">
+                        Your OpenClaw agent team is actively supporting your mission.
+                        <div class="insight-metric">${state.agents.length} agents</div>
+                        <p>All agents are monitored in real-time. Check the Agents tab for detailed health metrics.</p>
+                    </div>
+                </div>
+            `;
+            elements.insightsContainer.innerHTML = insightsHTML;
+        }
+
+        // Format timestamp for display
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        // Format uptime for display
+        function formatUptime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+            return `${Math.floor(seconds / 86400)}d`;
+        }
+
+        // Add a new task
+        function addTask(status) {
+            const title = prompt('Enter task title:');
+            if (title && title.trim()) {
+                const description = prompt('Enter task description (optional):') || '';
+                const priority = prompt('Enter priority (high/medium/low):', 'medium') || 'medium';
+                
+                // This would normally make an API call to the VPS
+                console.log('Adding task:', { title, description, priority, status });
+                showNotification('Task added! (This would normally sync with your VPS)', 'success');
+            }
+        }
+
+        // Edit a task
+        function editTask(id) {
+            const project = state.projects.find(p => p.id === id);
+            if (project) {
+                showNotification(`Editing task: ${project.title}\n\nThis would open a detailed edit modal in the full implementation.`, 'info');
+            }
+        }
+
+        // Agent management functions
+        function configureAgent(agentId) {
+            showNotification(`Configure agent: ${agentId}`, 'info');
+        }
+
+        function pauseAgent(agentId) {
+            showNotification(`Pause agent: ${agentId}`, 'warning');
+        }
+
+        function restartAgent(agentId) {
+            showNotification(`Restart agent: ${agentId}`, 'info');
+        }
+
+        // Notification system
+        function setupNotificationSystem() {
+            // Auto-hide notifications after duration
+            setInterval(() => {
+                if (state.notifications.length > 0) {
+                    state.notifications.shift();
+                    updateNotifications();
+                }
+            }, CONFIG.NOTIFICATION_DURATION);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                message,
+                type,
+                timestamp: new Date().toISOString()
+            };
+            state.notifications.push(notification);
+            updateNotifications();
+            
+            // Auto-hide after duration
+            setTimeout(() => {
+                hideNotificationById(notification.id);
+            }, CONFIG.NOTIFICATION_DURATION);
+        }
+
+        function hideNotification() {
+            elements.notificationBanner.classList.remove('show');
+        }
+
+        function hideNotificationById(id) {
+            state.notifications = state.notifications.filter(n => n.id !== id);
+            updateNotifications();
+        }
+
+        function updateNotifications() {
+            if (state.notifications.length > 0) {
+                const latest = state.notifications[state.notifications.length - 1];
+                elements.notificationContent.innerHTML = latest.message;
+                elements.notificationBanner.className = `notification-banner show ${latest.type}`;
+                elements.notificationBanner.style.display = 'block';
+            } else {
+                elements.notificationBanner.classList.remove('show');
+                setTimeout(() => {
+                    elements.notificationBanner.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Alert checking system
+        function checkAlerts() {
+            // Check for critical alerts
+            if (state.metrics && state.metrics.daysToGoal < 300) {
+                showNotification('⚠️ Critical: Days to goal is below 300!', 'warning');
+            }
+            
+            // Check agent health
+            if (state.agents) {
+                state.agents.forEach(agent => {
+                    if (agent.health.cpu > 90) {
+                        showNotification(`⚠️ Agent ${agent.name} CPU usage is critical (${agent.health.cpu}%)`, 'error');
+                    }
+                    if (agent.health.responseTime > 500) {
+                        showNotification(`⚠️ Agent ${agent.name} response time is slow (${agent.health.responseTime}ms)`, 'warning');
+                    }
+                });
+            }
+        }
+
+        // Complete Project Modal Functions
+        function showCompleteProjectModal() {
+            const modal = document.getElementById('completeProjectModal');
+            const currentProgress = state.metrics ? state.metrics.pcsProgress : 0;
+            
+            if (currentProgress >= 42) {
+                showNotification('🎉 Congratulations! You have completed all 42 projects!', 'success');
+                return;
+            }
+            
+            document.getElementById('projectTitleInput').value = '';
+            document.getElementById('projectReflectionInput').value = '';
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideCompleteProjectModal() {
+            const modal = document.getElementById('completeProjectModal');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        async function completeProject() {
+            const title = document.getElementById('projectTitleInput').value.trim();
+            const reflection = document.getElementById('projectReflectionInput').value.trim();
+            
+            if (!title) {
+                showNotification('Please enter a project title', 'error');
+                return;
+            }
+            
+            try {
+                // Simulate API call to complete project
+                const response = await fetch(`${CONFIG.VPS_URL}/api/complete-project`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        reflection: reflection,
+                        completedAt: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    // Update local state
+                    if (state.metrics) {
+                        state.metrics.pcsProgress += 1;
+                    }
+                    
+                    // Refresh data to get updated metrics
+                    await fetchData();
+                    
+                    hideCompleteProjectModal();
+                    showNotification(`✅ Project "${title}" completed! PCS counter incremented to ${state.metrics.pcsProgress}/42`, 'success');
+                    
+                    // Add to activity log
+                    const activityItem = {
+                        timestamp: new Date().toISOString(),
+                        message: `Completed project: "${title}"`
+                    };
+                    state.activityLog.unshift(activityItem);
+                    renderActivityFeed();
+                    
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Failed to complete project');
+                }
+            } catch (error) {
+                console.error('Error completing project:', error);
+                showNotification(`❌ Failed to complete project: ${error.message}`, 'error');
+            }
+        }
+
+        // Enhanced Search Functionality
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                // Clear search highlights and show all content
+                clearSearchHighlights();
+                return;
+            }
+            
+            // Search across all content areas
+            const searchResults = [];
+            
+            // Search in priorities
+            state.priorities.forEach(priority => {
+                if (priority.text.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'priority', id: priority.id, content: priority.text });
+                }
+            });
+            
+            // Search in projects
+            state.projects.forEach(project => {
+                if (project.title.toLowerCase().includes(searchTerm) || 
+                    project.description.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'project', id: project.id, content: project.title });
+                }
+            });
+            
+            // Search in agents
+            state.agents.forEach(agent => {
+                if (agent.name.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'agent', id: agent.id, content: agent.name });
+                }
+            });
+            
+            // Search in notes
+            if (state.notes.toLowerCase().includes(searchTerm)) {
+                searchResults.push({ type: 'notes', content: 'Notes contain search term' });
+            }
+            
+            // Search in activity log
+            state.activityLog.forEach((item, index) => {
+                if (item.message.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'activity', index: index, content: item.message });
+                }
+            });
+            
+            // Highlight results in current tab
+            highlightSearchResults(searchTerm);
+            
+            // Show notification with result count
+            if (searchResults.length > 0) {
+                showNotification(`Found ${searchResults.length} result${searchResults.length === 1 ? '' : 's'} for "${searchTerm}"`, 'info');
+            } else {
+                showNotification(`No results found for "${searchTerm}"`, 'warning');
+            }
+        }
+
+        function highlightSearchResults(searchTerm) {
+            // Remove existing highlights
+            clearSearchHighlights();
+            
+            // Get current active tab content
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+            
+            // Create a walker to find text nodes
+            const walker = document.createTreeWalker(
+                activeTab,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function(node) {
+                        // Skip script and style tags
+                        if (node.parentElement.tagName === 'SCRIPT' || 
+                            node.parentElement.tagName === 'STYLE') {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+            
+            const matches = [];
+            let node;
+            while (node = walker.nextNode()) {
+                const textContent = node.textContent.toLowerCase();
+                if (textContent.includes(searchTerm)) {
+                    matches.push(node);
+                }
+            }
+            
+            // Highlight matches
+            matches.forEach(node => {
+                const parent = node.parentNode;
+                const fragment = document.createDocumentFragment();
+                const textContent = node.textContent;
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                let lastIndex = 0;
+                let match;
+                
+                while ((match = regex.exec(textContent)) !== null) {
+                    // Add text before match
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(textContent.slice(lastIndex, match.index)));
+                    }
+                    // Add highlighted match
+                    const highlight = document.createElement('mark');
+                    highlight.style.backgroundColor = 'rgba(120, 160, 131, 0.3)';
+                    highlight.style.padding = '2px 4px';
+                    highlight.style.borderRadius = '4px';
+                    highlight.textContent = textContent.slice(match.index, regex.lastIndex);
+                    fragment.appendChild(highlight);
+                    lastIndex = regex.lastIndex;
+                }
+                
+                // Add remaining text
+                if (lastIndex < textContent.length) {
+                    fragment.appendChild(document.createTextNode(textContent.slice(lastIndex)));
+                }
+                
+                parent.replaceChild(fragment, node);
+            });
+        }
+
+        function clearSearchHighlights() {
+            const marks = document.querySelectorAll('mark');
+            marks.forEach(mark => {
+                const parent = mark.parentNode;
+                const text = document.createTextNode(mark.textContent);
+                parent.replaceChild(text, mark);
+            });
+        }
+
+        // Enhanced Error Handling
+        async function fetchData() {
+            // Don't poll if tab is not visible
+            if (!state.isVisible) {
+                return;
+            }
+
+            try {
+                // Fetch all endpoints in parallel with timeout
+                const timeout = (ms) => new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timeout')), ms)
+                );
+                
+                const endpoints = [
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/metrics`), timeout(10000)]),
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/projects`), timeout(10000)]),
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/agents`), timeout(10000)]),
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/activity`), timeout(10000)])
+                ];
+
+                const responses = await Promise.all(endpoints);
+
+                // Check if all responses are ok
+                if (responses.every(res => res && res.ok)) {
+                    const [metricsRes, projectsRes, agentsRes, activityRes] = responses;
+                    const [metrics, projects, agents, activity] = await Promise.all([
+                        metricsRes.json(),
+                        projectsRes.json(),
+                        agentsRes.json(),
+                        activityRes.json()
+                    ]);
+
+                    // Update state
+                    state.metrics = metrics;
+                    state.projects = projects;
+                    state.agents = agents;
+                    state.activityLog = activity.slice(0, CONFIG.MAX_ACTIVITY_ITEMS);
+                    
+                    state.connectionStatus = 'connected';
+                    updateConnectionStatus();
+                    
+                    // Render all tabs
+                    renderMetrics();
+                    renderProjects();
+                    renderAgents();
+                    renderActivityFeed();
+                    renderInsights();
+                    
+                    // Check for alerts and notifications
+                    checkAlerts();
+                } else {
+                    throw new Error('One or more API endpoints failed');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                state.connectionStatus = 'disconnected';
+                updateConnectionStatus();
+                
+                // Show enhanced error message with retry option
+                showEnhancedErrorMessage(error.message);
+            }
+        }
+
+        function showEnhancedErrorMessage(message) {
+            const errorMessage = `
+                <div class="error-message">
+                    <h3>⚠️ Connection Error</h3>
+                    <p>${message}</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem;">
+                        <strong>Troubleshooting:</strong><br>
+                        • Check your internet connection<br>
+                        • Verify the VPS is running at ${CONFIG.VPS_URL}<br>
+                        • Try refreshing the page<br>
+                        <button onclick="manualRefresh()" style="margin-top: 0.5rem; background: var(--accent-primary); color: var(--bg-primary); border: none; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer;">🔄 Retry Now</button>
+                    </p>
+                </div>
+            `;
+            
+            // Only show in dashboard tab to avoid spamming
+            if (document.querySelector('.tab-content.active').id === 'dashboardTab') {
+                elements.metricsGrid.innerHTML = errorMessage;
+                elements.activityFeed.innerHTML = errorMessage;
+            }
+        }
+
+        function manualRefresh() {
+            showNotification('🔄 Attempting to reconnect...', 'info');
+            fetchData();
+        }
+
+        // Performance Optimizations
+        // Memoized rendering functions to prevent unnecessary re-renders
+        const renderCache = new Map();
+
+        function memoizedRender(renderFunction, dataKey, ...args) {
+            const cacheKey = `${dataKey}_${JSON.stringify(args)}`;
+            const dataHash = JSON.stringify(state[dataKey]);
+            
+            if (renderCache.has(cacheKey) && renderCache.get(cacheKey).dataHash === dataHash) {
+                // Return cached result
+                return renderCache.get(cacheKey).result;
+            }
+            
+            // Render and cache result
+            const result = renderFunction(...args);
+            renderCache.set(cacheKey, { dataHash, result });
+            return result;
+        }
+
+        // Optimized render functions
+        function renderMetricsOptimized() {
+            if (!state.metrics) return;
+            
+            // Only re-render if metrics have changed
+            const metricsHash = JSON.stringify(state.metrics);
+            if (renderCache.get('metrics') === metricsHash) {
+                return;
+            }
+            
+            renderMetrics();
+            renderCache.set('metrics', metricsHash);
+        }
+
+        function renderProjectsOptimized() {
+            if (!state.projects) return;
+            
+            const projectsHash = JSON.stringify(state.projects);
+            if (renderCache.get('projects') === projectsHash) {
+                return;
+            }
+            
+            renderProjects();
+            renderCache.set('projects', projectsHash);
+        }
+
+        function renderAgentsOptimized() {
+            if (!state.agents) return;
+            
+            const agentsHash = JSON.stringify(state.agents);
+            if (renderCache.get('agents') === agentsHash) {
+                return;
+            }
+            
+            renderAgents();
+            renderCache.set('agents', agentsHash);
+        }
+
+        function renderActivityFeedOptimized() {
+            if (!state.activityLog) return;
+            
+            const activityHash = JSON.stringify(state.activityLog);
+            if (renderCache.get('activity') === activityHash) {
+                return;
+            }
+            
+            renderActivityFeed();
+            renderCache.set('activity', activityHash);
+        }
+
+        function renderInsightsOptimized() {
+            if (!state.metrics) return;
+            
+            const insightsHash = JSON.stringify(state.metrics);
+            if (renderCache.get('insights') === insightsHash) {
+                return;
+            }
+            
+            renderInsights();
+            renderCache.set('insights', insightsHash);
+        }
+
+        // Replace original render calls with optimized versions in fetchData
+        // (This will be handled by modifying the fetchData function)
+
+        // Debounced search
+        let searchTimeout;
+        function debouncedHandleSearch(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                handleSearch(e);
+            }, 300);
+        }
+
+        // Update event listener to use debounced search
+        function setupEventListeners() {
+            // Tab navigation
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    switchTab(tabId);
+                });
+                
+                // Ensure tabs are keyboard navigable
+                tab.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const tabId = tab.dataset.tab;
+                        switchTab(tabId);
+                    }
+                });
+            });
+
+            // Search functionality with debounce
+            elements.searchInput.addEventListener('input', debouncedHandleSearch);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Prevent default behavior for our shortcuts
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    elements.searchInput.focus();
+                    showKeyboardHelp();
+                }
+                // Ctrl/Cmd + S for save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveToLocalStorage();
+                    showNotification('Notes saved successfully!', 'success');
+                }
+                // Ctrl/Cmd + Shift + P for adding priority
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'p') {
+                    e.preventDefault();
+                    addPriority();
+                }
+                // Ctrl/Cmd + Shift + N for new note
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'n') {
+                    e.preventDefault();
+                    switchTab('notes');
+                    elements.notesTextarea.focus();
+                }
+                // Alt + 1-5 for tab navigation
+                if (e.altKey && e.key >= '1' && e.key <= '5') {
+                    e.preventDefault();
+                    const tabIndex = parseInt(e.key) - 1;
+                    const tabIds = ['dashboard', 'projects', 'insights', 'agents', 'notes'];
+                    if (tabIndex < tabIds.length) {
+                        switchTab(tabIds[tabIndex]);
+                    }
+                }
+                // Escape key to close modals/notifications
+                if (e.key === 'Escape') {
+                    hideCompleteProjectModal();
+                    hideNotification();
+                }
+                // Question mark for keyboard help
+                if (e.key === '?') {
+                    e.preventDefault();
+                    toggleKeyboardHelp();
+                }
+            });
+
+            // Priority management
+            elements.addPriorityBtn.addEventListener('click', addPriority);
+
+            // Notification close
+            elements.notificationClose.addEventListener('click', hideNotification);
+
+            // Modal close on outside click
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('completeProjectModal');
+                if (e.target === modal) {
+                    hideCompleteProjectModal();
+                }
+            });
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Make functions available globally for inline event handlers
+        window.togglePriority = togglePriority;
+        window.addTask = addTask;
+        window.editTask = editTask;
+        window.configureAgent = configureAgent;
+        window.pauseAgent = pauseAgent;
+        window.restartAgent = restartAgent;
+        window.showCompleteProjectModal = showCompleteProjectModal;
+        window.hideCompleteProjectModal = hideCompleteProjectModal;
+        window.completeProject = completeProject;
+        window.manualRefresh = manualRefresh;
+        window.hideKeyboardHelp = hideKeyboardHelp;
+    </script>
+</body>
+</html>
