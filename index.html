@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mission Control - Jack's Command Center</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- PapaParse for CSV export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root {
             /* Core Colors */
@@ -202,6 +208,9 @@
         /* Dashboard Tab */
         .welcome-section {
             margin-bottom: var(--spacing-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .welcome-text {
@@ -215,6 +224,37 @@
             color: var(--text-secondary);
         }
 
+        /* Dashboard Controls */
+        .dashboard-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .control-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .control-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .control-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        /* Metrics Grid */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -282,6 +322,39 @@
             color: var(--accent-error);
         }
 
+        /* Charts Section */
+        .charts-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .charts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .charts-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin: var(--spacing-md) 0;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        /* Activity Feed */
         .activity-feed {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -319,6 +392,7 @@
             flex: 1;
         }
 
+        /* Priorities Section */
         .priorities-section {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -1119,6 +1193,10 @@
                 grid-template-columns: 1fr;
             }
             
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .notification-banner {
                 margin: var(--spacing-md);
                 width: calc(100% - 2 * var(--spacing-md));
@@ -1167,6 +1245,173 @@
             font-weight: 600;
             margin-left: var(--spacing-xs);
         }
+
+        /* Dashboard Customization Panel */
+        .customization-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            padding: var(--spacing-xl);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .customization-panel.open {
+            right: 0;
+        }
+
+        .customization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .customization-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-customization {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .customization-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .customization-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
+
+        .customization-option {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .customization-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-size: 0.9rem;
+        }
+
+        .customization-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+        }
+
+        .customization-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--bg-primary);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Export functionality */
+        .export-options {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        .export-btn {
+            flex: 1;
+            padding: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .export-btn:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        /* Real-time data streaming indicator */
+        .streaming-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 0.85rem;
+            color: var(--accent-success);
+        }
+
+        .streaming-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: var(--accent-success);
+            animation: pulse 1.5s infinite;
+        }
+
+        .streaming-dot.paused {
+            background: var(--accent-warning);
+            animation: none;
+        }
     </style>
 </head>
 <body>
@@ -1204,8 +1449,52 @@
         <!-- Dashboard Tab -->
         <div class="tab-content active" id="dashboardTab">
             <div class="welcome-section">
-                <h1 class="welcome-text" id="welcomeMessage">Good morning, Jack</h1>
-                <p class="current-time" id="currentTime">Tuesday, March 10, 2026 - 12:48 PM</p>
+                <div>
+                    <h1 class="welcome-text" id="welcomeMessage">Good morning, Jack</h1>
+                    <p class="current-time" id="currentTime">Tuesday, March 10, 2026 - 12:48 PM</p>
+                </div>
+                <div class="dashboard-controls">
+                    <button class="control-btn" id="customizeBtn">
+                        <span>⚙️</span> Customize
+                    </button>
+                    <button class="control-btn" id="exportBtn">
+                        <span>📤</span> Export
+                    </button>
+                    <div class="streaming-indicator" id="streamingIndicator">
+                        <span class="streaming-dot" id="streamingDot"></span>
+                        <span id="streamingStatus">Live</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="charts-section">
+                <div class="charts-header">
+                    <h2 class="charts-title">Advanced Analytics</h2>
+                    <div class="chart-time-range">
+                        <select id="timeRangeSelect" class="customization-input">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                            <option value="365">Last year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <canvas id="pcsProgressChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="projectActivityChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <canvas id="agentPerformanceChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="productivityTrendChart"></canvas>
+                    </div>
+                </div>
             </div>
             
             <div class="metrics-grid" id="metricsGrid">
@@ -1271,6 +1560,127 @@
         </div>
     </main>
 
+    <!-- Dashboard Customization Panel -->
+    <div class="customization-panel" id="customizationPanel">
+        <div class="customization-header">
+            <h2 class="customization-title">Dashboard Customization</h2>
+            <button class="close-customization" id="closeCustomization">×</button>
+        </div>
+        
+        <div class="customization-section">
+            <h3>Display Options</h3>
+            <div class="customization-option">
+                <label class="customization-label">Theme</label>
+                <select id="themeSelect" class="customization-input">
+                    <option value="dark">Dark Theme</option>
+                    <option value="light">Light Theme</option>
+                    <option value="blue">Blue Theme</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label class="customization-label">Metrics Visibility</label>
+                <div class="customization-toggle">
+                    <span>Show PCS Progress</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showPcsToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="customization-option">
+                <div class="customization-toggle">
+                    <span>Show Active Projects</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showProjectsToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="customization-option">
+                <div class="customization-toggle">
+                    <span>Show Tasks Today</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showTasksToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="customization-option">
+                <div class="customization-toggle">
+                    <span>Show Days to Goal</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showDaysToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="customization-section">
+            <h3>Chart Preferences</h3>
+            <div class="customization-option">
+                <label class="customization-label">Chart Type</label>
+                <select id="chartTypeSelect" class="customization-input">
+                    <option value="line">Line Charts</option>
+                    <option value="bar">Bar Charts</option>
+                    <option value="mixed">Mixed Charts</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label class="customization-label">Data Refresh Rate</label>
+                <select id="refreshRateSelect" class="customization-input">
+                    <option value="5000">5 seconds</option>
+                    <option value="10000" selected>10 seconds</option>
+                    <option value="30000">30 seconds</option>
+                    <option value="60000">1 minute</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="customization-section">
+            <h3>Export Settings</h3>
+            <div class="customization-option">
+                <label class="customization-label">Default Export Format</label>
+                <select id="exportFormatSelect" class="customization-input">
+                    <option value="csv">CSV</option>
+                    <option value="pdf" selected>PDF</option>
+                    <option value="both">Both CSV & PDF</option>
+                </select>
+            </div>
+            <div class="customization-option">
+                <label class="customization-label">Include Charts in PDF</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="includeChartsToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="customization-section">
+            <h3>Real-time Streaming</h3>
+            <div class="customization-option">
+                <label class="customization-label">Streaming Mode</label>
+                <div class="customization-toggle">
+                    <span>Enable Live Updates</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="streamingToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="customization-option">
+                <label class="customization-label">Streaming Quality</label>
+                <select id="streamingQualitySelect" class="customization-input">
+                    <option value="high">High Quality</option>
+                    <option value="medium" selected>Medium Quality</option>
+                    <option value="low">Low Quality (Save Bandwidth)</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="add-priority-btn" id="saveCustomizationBtn" style="width: 100%;">Save Customization</button>
+    </div>
+
     <!-- Complete Project Modal -->
     <div class="modal-overlay hidden" id="completeProjectModal">
         <div class="modal-content">
@@ -1303,7 +1713,27 @@
             notes: '',
             connectionStatus: 'connected',
             notifications: [],
-            isVisible: true // Track if tab is visible
+            isVisible: true, // Track if tab is visible
+            customization: {
+                theme: 'dark',
+                showPcs: true,
+                showProjects: true,
+                showTasks: true,
+                showDays: true,
+                chartType: 'line',
+                refreshRate: 10000,
+                exportFormat: 'pdf',
+                includeCharts: true,
+                streamingEnabled: true,
+                streamingQuality: 'medium'
+            },
+            charts: {
+                pcsProgress: null,
+                projectActivity: null,
+                agentPerformance: null,
+                productivityTrend: null
+            },
+            streamingInterval: null
         };
 
         // DOM Elements
@@ -1328,7 +1758,16 @@
             lastSaved: document.getElementById('lastSaved'),
             notificationBanner: document.getElementById('notificationBanner'),
             notificationContent: document.getElementById('notificationContent'),
-            notificationClose: document.getElementById('notificationClose')
+            notificationClose: document.getElementById('notificationClose'),
+            customizeBtn: document.getElementById('customizeBtn'),
+            closeCustomization: document.getElementById('closeCustomization'),
+            customizationPanel: document.getElementById('customizationPanel'),
+            saveCustomizationBtn: document.getElementById('saveCustomizationBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            timeRangeSelect: document.getElementById('timeRangeSelect'),
+            streamingIndicator: document.getElementById('streamingIndicator'),
+            streamingDot: document.getElementById('streamingDot'),
+            streamingStatus: document.getElementById('streamingStatus')
         };
 
         // Initialize the application
@@ -1342,6 +1781,10 @@
             setupNotesAutoSave();
             setupNotificationSystem();
             setupVisibilityTracking();
+            initializeCharts();
+            setupCustomizationPanel();
+            setupExportFunctionality();
+            setupRealTimeStreaming();
         }
 
         // Set up event listeners
@@ -1369,6 +1812,16 @@
                     saveToLocalStorage();
                     showNotification('Notes saved successfully!', 'success');
                 }
+                // Ctrl/Cmd + E for export
+                if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                    e.preventDefault();
+                    exportData();
+                }
+                // Ctrl/Cmd + , for customization
+                if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+                    e.preventDefault();
+                    toggleCustomizationPanel();
+                }
             });
 
             // Priority management
@@ -1376,6 +1829,31 @@
 
             // Notification close
             elements.notificationClose.addEventListener('click', hideNotification);
+
+            // Customization panel
+            elements.customizeBtn.addEventListener('click', toggleCustomizationPanel);
+            elements.closeCustomization.addEventListener('click', toggleCustomizationPanel);
+            elements.saveCustomizationBtn.addEventListener('click', saveCustomization);
+
+            // Export functionality
+            elements.exportBtn.addEventListener('click', exportData);
+
+            // Time range selection
+            elements.timeRangeSelect.addEventListener('change', updateTimeRange);
+
+            // Modal close on outside click
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('completeProjectModal');
+                if (e.target === modal) {
+                    hideCompleteProjectModal();
+                }
+                // Close customization panel when clicking outside
+                if (elements.customizationPanel.classList.contains('open') && 
+                    !elements.customizationPanel.contains(e.target) && 
+                    e.target !== elements.customizeBtn) {
+                    toggleCustomizationPanel();
+                }
+            });
         }
 
         // Track tab visibility for adaptive polling
@@ -1445,9 +1923,11 @@
                     const parsedState = JSON.parse(savedState);
                     state.priorities = parsedState.priorities || [];
                     state.notes = parsedState.notes || '';
+                    state.customization = {...state.customization, ...(parsedState.customization || {})};
                     renderPriorities();
                     elements.notesTextarea.value = state.notes;
                     updateCharCount();
+                    applyCustomization();
                 }
             } catch (error) {
                 console.error('Error loading from localStorage:', error);
@@ -1461,6 +1941,7 @@
                 const saveState = {
                     priorities: state.priorities,
                     notes: state.notes,
+                    customization: state.customization,
                     lastUpdated: new Date().toISOString()
                 };
                 localStorage.setItem('missionControlState', JSON.stringify(saveState));
@@ -1545,13 +2026,13 @@
         // Start polling data from VPS
         function startDataPolling() {
             fetchData();
-            setInterval(fetchData, CONFIG.POLL_INTERVAL);
+            setInterval(fetchData, state.customization.refreshRate);
         }
 
         // Fetch data from VPS endpoints with proper error handling
         async function fetchData() {
-            // Don't poll if tab is not visible
-            if (!state.isVisible) {
+            // Don't poll if tab is not visible or streaming is disabled
+            if (!state.isVisible || !state.customization.streamingEnabled) {
                 return;
             }
 
@@ -1591,6 +2072,7 @@
                     renderAgents();
                     renderActivityFeed();
                     renderInsights();
+                    updateCharts();
                     
                     // Check for alerts and notifications
                     checkAlerts();
@@ -1630,54 +2112,78 @@
         function renderMetrics() {
             if (!state.metrics) return;
 
-            const metricsHTML = `
-                <div class="metric-card">
-                    <div class="metric-accent"></div>
-                    <div class="metric-header">
-                        <span class="metric-icon">🎯</span>
-                        <span class="metric-label">PCS Progress</span>
+            let metricsHTML = '';
+
+            if (state.customization.showPcs) {
+                metricsHTML += `
+                    <div class="metric-card">
+                        <div class="metric-accent"></div>
+                        <div class="metric-header">
+                            <span class="metric-icon">🎯</span>
+                            <span class="metric-label">PCS Progress</span>
+                        </div>
+                        <div class="metric-value">${state.metrics.pcsProgress}/42</div>
+                        <div class="metric-trend">
+                            <span>▲ 0 this week</span>
+                        </div>
+                        <button class="complete-project-btn" onclick="showCompleteProjectModal()">✅ Complete Project</button>
                     </div>
-                    <div class="metric-value">${state.metrics.pcsProgress}/42</div>
-                    <div class="metric-trend">
-                        <span>▲ 0 this week</span>
+                `;
+            }
+
+            if (state.customization.showProjects) {
+                metricsHTML += `
+                    <div class="metric-card">
+                        <div class="metric-accent"></div>
+                        <div class="metric-header">
+                            <span class="metric-icon">🏗️</span>
+                            <span class="metric-label">Active Projects</span>
+                        </div>
+                        <div class="metric-value">${state.metrics.activeProjects}</div>
+                        <div class="metric-trend">
+                            <span>Steady</span>
+                        </div>
                     </div>
-                    <button class="complete-project-btn" onclick="showCompleteProjectModal()">✅ Complete Project</button>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-accent"></div>
-                    <div class="metric-header">
-                        <span class="metric-icon">🏗️</span>
-                        <span class="metric-label">Active Projects</span>
+                `;
+            }
+
+            if (state.customization.showTasks) {
+                metricsHTML += `
+                    <div class="metric-card">
+                        <div class="metric-accent"></div>
+                        <div class="metric-header">
+                            <span class="metric-icon">✅</span>
+                            <span class="metric-label">Tasks Today</span>
+                        </div>
+                        <div class="metric-value">${state.metrics.tasksToday}</div>
+                        <div class="metric-trend">
+                            <span>▲ 0 vs yesterday</span>
+                        </div>
                     </div>
-                    <div class="metric-value">${state.metrics.activeProjects}</div>
-                    <div class="metric-trend">
-                        <span>Steady</span>
+                `;
+            }
+
+            if (state.customization.showDays) {
+                metricsHTML += `
+                    <div class="metric-card">
+                        <div class="metric-accent"></div>
+                        <div class="metric-header">
+                            <span class="metric-icon">⏰</span>
+                            <span class="metric-label">Days to Goal</span>
+                        </div>
+                        <div class="metric-value">${state.metrics.daysToGoal}</div>
+                        <div class="metric-trend ${state.metrics.daysToGoal < 300 ? 'negative' : ''}">
+                            <span>${state.metrics.daysToGoal < 300 ? '⚠️ Critical' : 'On track'}</span>
+                        </div>
                     </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-accent"></div>
-                    <div class="metric-header">
-                        <span class="metric-icon">✅</span>
-                        <span class="metric-label">Tasks Today</span>
-                    </div>
-                    <div class="metric-value">${state.metrics.tasksToday}</div>
-                    <div class="metric-trend">
-                        <span>▲ 0 vs yesterday</span>
-                    </div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-accent"></div>
-                    <div class="metric-header">
-                        <span class="metric-icon">⏰</span>
-                        <span class="metric-label">Days to Goal</span>
-                    </div>
-                    <div class="metric-value">${state.metrics.daysToGoal}</div>
-                    <div class="metric-trend ${state.metrics.daysToGoal < 300 ? 'negative' : ''}">
-                        <span>${state.metrics.daysToGoal < 300 ? '⚠️ Critical' : 'On track'}</span>
-                    </div>
-                </div>
-            `;
-            elements.metricsGrid.innerHTML = metricsHTML;
+                `;
+            }
+
+            if (metricsHTML === '') {
+                elements.metricsGrid.innerHTML = '<div class="text-center text-muted">No metrics configured for display</div>';
+            } else {
+                elements.metricsGrid.innerHTML = metricsHTML;
+            }
         }
 
         // Render activity feed
@@ -2208,8 +2714,8 @@
 
         // Enhanced Error Handling
         async function fetchData() {
-            // Don't poll if tab is not visible
-            if (!state.isVisible) {
+            // Don't poll if tab is not visible or streaming is disabled
+            if (!state.isVisible || !state.customization.streamingEnabled) {
                 return;
             }
 
@@ -2253,6 +2759,7 @@
                     renderAgents();
                     renderActivityFeed();
                     renderInsights();
+                    updateCharts();
                     
                     // Check for alerts and notifications
                     checkAlerts();
@@ -2296,139 +2803,538 @@
             fetchData();
         }
 
-        // Performance Optimizations
-        // Memoized rendering functions to prevent unnecessary re-renders
-        const renderCache = new Map();
-
-        function memoizedRender(renderFunction, dataKey, ...args) {
-            const cacheKey = `${dataKey}_${JSON.stringify(args)}`;
-            const dataHash = JSON.stringify(state[dataKey]);
-            
-            if (renderCache.has(cacheKey) && renderCache.get(cacheKey).dataHash === dataHash) {
-                // Return cached result
-                return renderCache.get(cacheKey).result;
-            }
-            
-            // Render and cache result
-            const result = renderFunction(...args);
-            renderCache.set(cacheKey, { dataHash, result });
-            return result;
+        // Dashboard Customization Panel
+        function setupCustomizationPanel() {
+            // Load current customization settings into the panel
+            const customization = state.customization;
+            document.getElementById('themeSelect').value = customization.theme;
+            document.getElementById('showPcsToggle').checked = customization.showPcs;
+            document.getElementById('showProjectsToggle').checked = customization.showProjects;
+            document.getElementById('showTasksToggle').checked = customization.showTasks;
+            document.getElementById('showDaysToggle').checked = customization.showDays;
+            document.getElementById('chartTypeSelect').value = customization.chartType;
+            document.getElementById('refreshRateSelect').value = customization.refreshRate.toString();
+            document.getElementById('exportFormatSelect').value = customization.exportFormat;
+            document.getElementById('includeChartsToggle').checked = customization.includeCharts;
+            document.getElementById('streamingToggle').checked = customization.streamingEnabled;
+            document.getElementById('streamingQualitySelect').value = customization.streamingQuality;
         }
 
-        // Optimized render functions
-        function renderMetricsOptimized() {
-            if (!state.metrics) return;
+        function toggleCustomizationPanel() {
+            elements.customizationPanel.classList.toggle('open');
+        }
+
+        function saveCustomization() {
+            // Save customization settings
+            state.customization = {
+                theme: document.getElementById('themeSelect').value,
+                showPcs: document.getElementById('showPcsToggle').checked,
+                showProjects: document.getElementById('showProjectsToggle').checked,
+                showTasks: document.getElementById('showTasksToggle').checked,
+                showDays: document.getElementById('showDaysToggle').checked,
+                chartType: document.getElementById('chartTypeSelect').value,
+                refreshRate: parseInt(document.getElementById('refreshRateSelect').value),
+                exportFormat: document.getElementById('exportFormatSelect').value,
+                includeCharts: document.getElementById('includeChartsToggle').checked,
+                streamingEnabled: document.getElementById('streamingToggle').checked,
+                streamingQuality: document.getElementById('streamingQualitySelect').value
+            };
+
+            // Apply the new settings
+            applyCustomization();
+            saveToLocalStorage();
+            showNotification('Customization saved successfully!', 'success');
+            toggleCustomizationPanel();
+        }
+
+        function applyCustomization() {
+            // Apply theme
+            document.body.className = state.customization.theme;
             
-            // Only re-render if metrics have changed
-            const metricsHash = JSON.stringify(state.metrics);
-            if (renderCache.get('metrics') === metricsHash) {
-                return;
+            // Update refresh rate
+            clearInterval(state.streamingInterval);
+            if (state.customization.streamingEnabled) {
+                state.streamingInterval = setInterval(fetchData, state.customization.refreshRate);
             }
             
+            // Update streaming indicator
+            if (state.customization.streamingEnabled) {
+                elements.streamingDot.className = 'streaming-dot';
+                elements.streamingStatus.textContent = 'Live';
+            } else {
+                elements.streamingDot.className = 'streaming-dot paused';
+                elements.streamingStatus.textContent = 'Paused';
+            }
+            
+            // Re-render metrics with new visibility settings
             renderMetrics();
-            renderCache.set('metrics', metricsHash);
         }
 
-        function renderProjectsOptimized() {
-            if (!state.projects) return;
-            
-            const projectsHash = JSON.stringify(state.projects);
-            if (renderCache.get('projects') === projectsHash) {
-                return;
+        // Chart Initialization and Updates
+        function initializeCharts() {
+            const ctx1 = document.getElementById('pcsProgressChart').getContext('2d');
+            const ctx2 = document.getElementById('projectActivityChart').getContext('2d');
+            const ctx3 = document.getElementById('agentPerformanceChart').getContext('2d');
+            const ctx4 = document.getElementById('productivityTrendChart').getContext('2d');
+
+            // Generate sample data for charts
+            const labels = Array.from({length: 30}, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() - (29 - i));
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+
+            const pcsData = Array.from({length: 30}, (_, i) => Math.floor(Math.random() * 10) + (i * 1.2));
+            const projectData = Array.from({length: 30}, () => Math.floor(Math.random() * 5));
+            const agentData = Array.from({length: 30}, () => Math.floor(Math.random() * 100));
+            const productivityData = Array.from({length: 30}, () => Math.floor(Math.random() * 100));
+
+            // PCS Progress Chart
+            state.charts.pcsProgress = new Chart(ctx1, {
+                type: state.customization.chartType === 'bar' ? 'bar' : 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'PCS Progress',
+                        data: pcsData,
+                        borderColor: '#78A083',
+                        backgroundColor: state.customization.chartType === 'bar' ? 'rgba(120, 160, 131, 0.2)' : 'transparent',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Project Activity Chart
+            state.charts.projectActivity = new Chart(ctx2, {
+                type: state.customization.chartType === 'bar' ? 'bar' : 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Active Projects',
+                        data: projectData,
+                        borderColor: '#2196F3',
+                        backgroundColor: state.customization.chartType === 'bar' ? 'rgba(33, 150, 243, 0.2)' : 'transparent',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Agent Performance Chart
+            state.charts.agentPerformance = new Chart(ctx3, {
+                type: state.customization.chartType === 'bar' ? 'bar' : 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Agent Health Score',
+                        data: agentData,
+                        borderColor: '#FF9800',
+                        backgroundColor: state.customization.chartType === 'bar' ? 'rgba(255, 152, 0, 0.2)' : 'transparent',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Productivity Trend Chart
+            state.charts.productivityTrend = new Chart(ctx4, {
+                type: state.customization.chartType === 'bar' ? 'bar' : 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Productivity Score',
+                        data: productivityData,
+                        borderColor: '#9C27B0',
+                        backgroundColor: state.customization.chartType === 'bar' ? 'rgba(156, 39, 176, 0.2)' : 'transparent',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // In a real implementation, this would update charts with real data
+            // For now, we'll just simulate some updates
+            if (state.metrics) {
+                const pcsProgress = state.metrics.pcsProgress;
+                const activeProjects = state.metrics.activeProjects;
+                
+                // Update PCS Progress chart with current value
+                if (state.charts.pcsProgress) {
+                    const currentData = state.charts.pcsProgress.data.datasets[0].data;
+                    currentData[currentData.length - 1] = pcsProgress;
+                    state.charts.pcsProgress.update();
+                }
+                
+                // Update Project Activity chart
+                if (state.charts.projectActivity) {
+                    const currentData = state.charts.projectActivity.data.datasets[0].data;
+                    currentData[currentData.length - 1] = activeProjects;
+                    state.charts.projectActivity.update();
+                }
             }
             
-            renderProjects();
-            renderCache.set('projects', projectsHash);
+            // Update Agent Performance chart
+            if (state.charts.agentPerformance && state.agents.length > 0) {
+                const avgHealth = state.agents.reduce((sum, agent) => {
+                    const cpuScore = 100 - agent.health.cpu;
+                    const memoryScore = 100 - (agent.health.memory / 10);
+                    const responseScore = 100 - (agent.health.responseTime / 10);
+                    return sum + (cpuScore + memoryScore + responseScore) / 3;
+                }, 0) / state.agents.length;
+                
+                const currentData = state.charts.agentPerformance.data.datasets[0].data;
+                currentData[currentData.length - 1] = Math.max(0, Math.min(100, avgHealth));
+                state.charts.agentPerformance.update();
+            }
         }
 
-        function renderAgentsOptimized() {
-            if (!state.agents) return;
+        function updateTimeRange() {
+            const days = parseInt(elements.timeRangeSelect.value);
+            // In a real implementation, this would fetch data for the selected time range
+            // For now, we'll just regenerate chart data
+            const labels = Array.from({length: days}, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() - (days - 1 - i));
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
             
-            const agentsHash = JSON.stringify(state.agents);
-            if (renderCache.get('agents') === agentsHash) {
-                return;
+            // Update all charts with new labels
+            Object.values(state.charts).forEach(chart => {
+                if (chart) {
+                    chart.data.labels = labels;
+                    chart.update();
+                }
+            });
+            
+            showNotification(`Showing data for last ${days} days`, 'info');
+        }
+
+        // Export Functionality
+        function setupExportFunctionality() {
+            // Export functionality is handled by the exportData function
+        }
+
+        function exportData() {
+            const format = state.customization.exportFormat;
+            
+            if (format === 'csv' || format === 'both') {
+                exportToCSV();
             }
             
-            renderAgents();
-            renderCache.set('agents', agentsHash);
-        }
-
-        function renderActivityFeedOptimized() {
-            if (!state.activityLog) return;
-            
-            const activityHash = JSON.stringify(state.activityLog);
-            if (renderCache.get('activity') === activityHash) {
-                return;
+            if (format === 'pdf' || format === 'both') {
+                exportToPDF();
             }
-            
-            renderActivityFeed();
-            renderCache.set('activity', activityHash);
         }
 
-        function renderInsightsOptimized() {
-            if (!state.metrics) return;
+        function exportToCSV() {
+            // Prepare data for CSV export
+            const data = {
+                metrics: state.metrics || {},
+                projects: state.projects || [],
+                agents: state.agents || [],
+                activity: state.activityLog || [],
+                priorities: state.priorities || []
+            };
             
-            const insightsHash = JSON.stringify(state.metrics);
-            if (renderCache.get('insights') === insightsHash) {
-                return;
-            }
+            // Convert to CSV format
+            let csvContent = 'Mission Control Data Export\n';
+            csvContent += `Export Date: ${new Date().toISOString()}\n\n`;
             
-            renderInsights();
-            renderCache.set('insights', insightsHash);
-        }
-
-        // Replace original render calls with optimized versions in fetchData
-        // (This will be handled by modifying the fetchData function)
-
-        // Debounced search
-        let searchTimeout;
-        function debouncedHandleSearch(e) {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                handleSearch(e);
-            }, 300);
-        }
-
-        // Update event listener to use debounced search
-        function setupEventListeners() {
-            // Tab navigation
-            elements.tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabId = tab.dataset.tab;
-                    switchTab(tabId);
+            // Metrics
+            csvContent += 'METRICS\n';
+            if (state.metrics) {
+                csvContent += 'Key,Value\n';
+                Object.entries(state.metrics).forEach(([key, value]) => {
+                    csvContent += `${key},${value}\n`;
                 });
-            });
+            }
+            csvContent += '\n';
+            
+            // Projects
+            csvContent += 'PROJECTS\n';
+            if (state.projects.length > 0) {
+                csvContent += 'ID,Title,Description,Status,Priority,Created At\n';
+                state.projects.forEach(project => {
+                    csvContent += `"${project.id}","${project.title}","${project.description}","${project.status}","${project.priority}","${project.createdAt}"\n`;
+                });
+            }
+            csvContent += '\n';
+            
+            // Agents
+            csvContent += 'AGENTS\n';
+            if (state.agents.length > 0) {
+                csvContent += 'ID,Name,Status,CPU,Memory,Response Time,Uptime,Capabilities\n';
+                state.agents.forEach(agent => {
+                    const capabilities = agent.capabilities.join('; ');
+                    csvContent += `"${agent.id}","${agent.name}","${agent.status}",${agent.health.cpu},${agent.health.memory},${agent.health.responseTime},${agent.uptimeSeconds},"${capabilities}"\n`;
+                });
+            }
+            csvContent += '\n';
+            
+            // Activity Log
+            csvContent += 'ACTIVITY LOG\n';
+            if (state.activityLog.length > 0) {
+                csvContent += 'Timestamp,Message\n';
+                state.activityLog.forEach(item => {
+                    csvContent += `"${item.timestamp}","${item.message}"\n`;
+                });
+            }
+            csvContent += '\n';
+            
+            // Priorities
+            csvContent += 'PRIORITIES\n';
+            if (state.priorities.length > 0) {
+                csvContent += 'ID,Text,Completed,Created At\n';
+                state.priorities.forEach(priority => {
+                    csvContent += `"${priority.id}","${priority.text}",${priority.completed},"${priority.createdAt}"\n`;
+                });
+            }
+            
+            // Create and download CSV file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `mission-control-export-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Data exported to CSV successfully!', 'success');
+        }
 
-            // Search functionality with debounce
-            elements.searchInput.addEventListener('input', debouncedHandleSearch);
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    elements.searchInput.focus();
+        function exportToPDF() {
+            // Use jsPDF to create PDF
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.text('Mission Control Dashboard Export', 14, 20);
+            doc.setFontSize(12);
+            doc.text(`Export Date: ${new Date().toLocaleString()}`, 14, 30);
+            
+            let yPos = 40;
+            
+            // Add metrics
+            if (state.metrics) {
+                doc.setFontSize(16);
+                doc.text('Metrics', 14, yPos);
+                yPos += 10;
+                doc.setFontSize(12);
+                Object.entries(state.metrics).forEach(([key, value]) => {
+                    doc.text(`${key}: ${value}`, 14, yPos);
+                    yPos += 8;
+                });
+                yPos += 10;
+            }
+            
+            // Add projects summary
+            if (state.projects.length > 0) {
+                doc.setFontSize(16);
+                doc.text('Projects Summary', 14, yPos);
+                yPos += 10;
+                doc.setFontSize(12);
+                doc.text(`Total Projects: ${state.projects.length}`, 14, yPos);
+                yPos += 8;
+                doc.text(`Active Projects: ${state.projects.filter(p => p.status === 'in-progress').length}`, 14, yPos);
+                yPos += 8;
+                doc.text(`Completed Projects: ${state.projects.filter(p => p.status === 'done').length}`, 14, yPos);
+                yPos += 10;
+            }
+            
+            // Add agents summary
+            if (state.agents.length > 0) {
+                doc.setFontSize(16);
+                doc.text('Agents Summary', 14, yPos);
+                yPos += 10;
+                doc.setFontSize(12);
+                doc.text(`Total Agents: ${state.agents.length}`, 14, yPos);
+                yPos += 8;
+                
+                // Add agent health summary
+                const healthyAgents = state.agents.filter(a => a.health.cpu < 80 && a.health.memory < 800 && a.health.responseTime < 200).length;
+                doc.text(`Healthy Agents: ${healthyAgents}/${state.agents.length}`, 14, yPos);
+                yPos += 10;
+            }
+            
+            // Add charts if enabled
+            if (state.customization.includeCharts && state.charts.pcsProgress) {
+                // Convert charts to images and add to PDF
+                // This is a simplified version - in practice, you'd need to handle async operations
+                try {
+                    const canvas = document.getElementById('pcsProgressChart');
+                    if (canvas) {
+                        const imgData = canvas.toDataURL('image/png');
+                        if (yPos + 80 < doc.internal.pageSize.height) {
+                            doc.addImage(imgData, 'PNG', 14, yPos, 180, 80);
+                            yPos += 90;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not export chart to PDF:', error);
                 }
-                // Ctrl/Cmd + S for save
-                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                    e.preventDefault();
-                    saveToLocalStorage();
-                    showNotification('Notes saved successfully!', 'success');
-                }
-            });
+            }
+            
+            // Save PDF
+            doc.save(`mission-control-export-${new Date().toISOString().split('T')[0]}.pdf`);
+            showNotification('Data exported to PDF successfully!', 'success');
+        }
 
-            // Priority management
-            elements.addPriorityBtn.addEventListener('click', addPriority);
+        // Real-time Data Streaming
+        function setupRealTimeStreaming() {
+            // Initialize streaming interval based on customization
+            if (state.customization.streamingEnabled) {
+                state.streamingInterval = setInterval(fetchData, state.customization.refreshRate);
+            }
+        }
 
-            // Notification close
-            elements.notificationClose.addEventListener('click', hideNotification);
-
-            // Modal close on outside click
-            window.addEventListener('click', (e) => {
-                const modal = document.getElementById('completeProjectModal');
-                if (e.target === modal) {
-                    hideCompleteProjectModal();
-                }
-            });
+        function toggleStreaming() {
+            const streamingEnabled = document.getElementById('streamingToggle').checked;
+            state.customization.streamingEnabled = streamingEnabled;
+            
+            if (streamingEnabled) {
+                // Start streaming
+                state.streamingInterval = setInterval(fetchData, state.customization.refreshRate);
+                elements.streamingDot.className = 'streaming-dot';
+                elements.streamingStatus.textContent = 'Live';
+                showNotification('Real-time streaming enabled', 'success');
+            } else {
+                // Stop streaming
+                clearInterval(state.streamingInterval);
+                elements.streamingDot.className = 'streaming-dot paused';
+                elements.streamingStatus.textContent = 'Paused';
+                showNotification('Real-time streaming paused', 'info');
+            }
+            
+            saveToLocalStorage();
         }
 
         // Initialize the app when DOM is loaded
@@ -2445,6 +3351,10 @@
         window.hideCompleteProjectModal = hideCompleteProjectModal;
         window.completeProject = completeProject;
         window.manualRefresh = manualRefresh;
+        window.toggleCustomizationPanel = toggleCustomizationPanel;
+        window.saveCustomization = saveCustomization;
+        window.exportData = exportData;
+        window.toggleStreaming = toggleStreaming;
     </script>
 </body>
 </html>
