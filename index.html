@@ -1106,6 +1106,19 @@
         </div>
     </main>
 
+    <!-- Complete Project Modal -->
+    <div class="modal-overlay hidden" id="completeProjectModal">
+        <div class="modal-content">
+            <h3>✅ Confirm Project Completion</h3>
+            <p>You're about to mark a project as complete. This will increment your PCS counter from <span id="currentPcsCount">0</span> to <span id="nextPcsCount">1</span>.</p>
+            <p><strong>Are you sure this project meets your completion criteria?</strong></p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="hideCompleteProjectModal()">Cancel</button>
+                <button class="modal-btn confirm" onclick="confirmProjectCompletion()">Confirm Completion</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Configuration
         const CONFIG = {
@@ -1463,6 +1476,7 @@
                     <div class="metric-trend">
                         <span>▲ 0 this week</span>
                     </div>
+                    <button class="complete-project-btn" onclick="showCompleteProjectModal()">✅ Complete Project</button>
                 </div>
                 <div class="metric-card">
                     <div class="metric-accent"></div>
@@ -1822,6 +1836,436 @@
             }
         }
 
+        // Complete Project Modal Functions
+        function showCompleteProjectModal() {
+            const modal = document.getElementById('completeProjectModal');
+            const currentProgress = state.metrics ? state.metrics.pcsProgress : 0;
+            
+            if (currentProgress >= 42) {
+                showNotification('🎉 Congratulations! You have completed all 42 projects!', 'success');
+                return;
+            }
+            
+            document.getElementById('projectTitleInput').value = '';
+            document.getElementById('projectReflectionInput').value = '';
+            modal.style.display = 'block';
+        }
+
+        function hideCompleteProjectModal() {
+            document.getElementById('completeProjectModal').style.display = 'none';
+        }
+
+        async function completeProject() {
+            const title = document.getElementById('projectTitleInput').value.trim();
+            const reflection = document.getElementById('projectReflectionInput').value.trim();
+            
+            if (!title) {
+                showNotification('Please enter a project title', 'error');
+                return;
+            }
+            
+            try {
+                // Simulate API call to complete project
+                const response = await fetch(`${CONFIG.VPS_URL}/api/complete-project`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        reflection: reflection,
+                        completedAt: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    // Update local state
+                    if (state.metrics) {
+                        state.metrics.pcsProgress += 1;
+                    }
+                    
+                    // Refresh data to get updated metrics
+                    await fetchData();
+                    
+                    hideCompleteProjectModal();
+                    showNotification(`✅ Project "${title}" completed! PCS counter incremented to ${state.metrics.pcsProgress}/42`, 'success');
+                    
+                    // Add to activity log
+                    const activityItem = {
+                        timestamp: new Date().toISOString(),
+                        message: `Completed project: "${title}"`
+                    };
+                    state.activityLog.unshift(activityItem);
+                    renderActivityFeed();
+                    
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Failed to complete project');
+                }
+            } catch (error) {
+                console.error('Error completing project:', error);
+                showNotification(`❌ Failed to complete project: ${error.message}`, 'error');
+            }
+        }
+
+        // Enhanced Search Functionality
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                // Clear search highlights and show all content
+                clearSearchHighlights();
+                return;
+            }
+            
+            // Search across all content areas
+            const searchResults = [];
+            
+            // Search in priorities
+            state.priorities.forEach(priority => {
+                if (priority.text.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'priority', id: priority.id, content: priority.text });
+                }
+            });
+            
+            // Search in projects
+            state.projects.forEach(project => {
+                if (project.title.toLowerCase().includes(searchTerm) || 
+                    project.description.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'project', id: project.id, content: project.title });
+                }
+            });
+            
+            // Search in agents
+            state.agents.forEach(agent => {
+                if (agent.name.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'agent', id: agent.id, content: agent.name });
+                }
+            });
+            
+            // Search in notes
+            if (state.notes.toLowerCase().includes(searchTerm)) {
+                searchResults.push({ type: 'notes', content: 'Notes contain search term' });
+            }
+            
+            // Search in activity log
+            state.activityLog.forEach((item, index) => {
+                if (item.message.toLowerCase().includes(searchTerm)) {
+                    searchResults.push({ type: 'activity', index: index, content: item.message });
+                }
+            });
+            
+            // Highlight results in current tab
+            highlightSearchResults(searchTerm);
+            
+            // Show notification with result count
+            if (searchResults.length > 0) {
+                showNotification(`Found ${searchResults.length} result${searchResults.length === 1 ? '' : 's'} for "${searchTerm}"`, 'info');
+            } else {
+                showNotification(`No results found for "${searchTerm}"`, 'warning');
+            }
+        }
+
+        function highlightSearchResults(searchTerm) {
+            // Remove existing highlights
+            clearSearchHighlights();
+            
+            // Get current active tab content
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
+            
+            // Create a walker to find text nodes
+            const walker = document.createTreeWalker(
+                activeTab,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function(node) {
+                        // Skip script and style tags
+                        if (node.parentElement.tagName === 'SCRIPT' || 
+                            node.parentElement.tagName === 'STYLE') {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+            
+            const matches = [];
+            let node;
+            while (node = walker.nextNode()) {
+                const textContent = node.textContent.toLowerCase();
+                if (textContent.includes(searchTerm)) {
+                    matches.push(node);
+                }
+            }
+            
+            // Highlight matches
+            matches.forEach(node => {
+                const parent = node.parentNode;
+                const fragment = document.createDocumentFragment();
+                const textContent = node.textContent;
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                let lastIndex = 0;
+                let match;
+                
+                while ((match = regex.exec(textContent)) !== null) {
+                    // Add text before match
+                    if (match.index > lastIndex) {
+                        fragment.appendChild(document.createTextNode(textContent.slice(lastIndex, match.index)));
+                    }
+                    // Add highlighted match
+                    const highlight = document.createElement('mark');
+                    highlight.style.backgroundColor = 'rgba(120, 160, 131, 0.3)';
+                    highlight.style.padding = '2px 4px';
+                    highlight.style.borderRadius = '4px';
+                    highlight.textContent = textContent.slice(match.index, regex.lastIndex);
+                    fragment.appendChild(highlight);
+                    lastIndex = regex.lastIndex;
+                }
+                
+                // Add remaining text
+                if (lastIndex < textContent.length) {
+                    fragment.appendChild(document.createTextNode(textContent.slice(lastIndex)));
+                }
+                
+                parent.replaceChild(fragment, node);
+            });
+        }
+
+        function clearSearchHighlights() {
+            const marks = document.querySelectorAll('mark');
+            marks.forEach(mark => {
+                const parent = mark.parentNode;
+                const text = document.createTextNode(mark.textContent);
+                parent.replaceChild(text, mark);
+            });
+        }
+
+        // Enhanced Error Handling
+        async function fetchData() {
+            // Don't poll if tab is not visible
+            if (!state.isVisible) {
+                return;
+            }
+
+            try {
+                // Fetch all endpoints in parallel with timeout
+                const timeout = (ms) => new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timeout')), ms)
+                );
+                
+                const endpoints = [
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/metrics`), timeout(10000)]),
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/projects`), timeout(10000)]),
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/agents`), timeout(10000)]),
+                    Promise.race([fetch(`${CONFIG.VPS_URL}/api/activity`), timeout(10000)])
+                ];
+
+                const responses = await Promise.all(endpoints);
+
+                // Check if all responses are ok
+                if (responses.every(res => res && res.ok)) {
+                    const [metricsRes, projectsRes, agentsRes, activityRes] = responses;
+                    const [metrics, projects, agents, activity] = await Promise.all([
+                        metricsRes.json(),
+                        projectsRes.json(),
+                        agentsRes.json(),
+                        activityRes.json()
+                    ]);
+
+                    // Update state
+                    state.metrics = metrics;
+                    state.projects = projects;
+                    state.agents = agents;
+                    state.activityLog = activity.slice(0, CONFIG.MAX_ACTIVITY_ITEMS);
+                    
+                    state.connectionStatus = 'connected';
+                    updateConnectionStatus();
+                    
+                    // Render all tabs
+                    renderMetrics();
+                    renderProjects();
+                    renderAgents();
+                    renderActivityFeed();
+                    renderInsights();
+                    
+                    // Check for alerts and notifications
+                    checkAlerts();
+                } else {
+                    throw new Error('One or more API endpoints failed');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                state.connectionStatus = 'disconnected';
+                updateConnectionStatus();
+                
+                // Show enhanced error message with retry option
+                showEnhancedErrorMessage(error.message);
+            }
+        }
+
+        function showEnhancedErrorMessage(message) {
+            const errorMessage = `
+                <div class="error-message">
+                    <h3>⚠️ Connection Error</h3>
+                    <p>${message}</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem;">
+                        <strong>Troubleshooting:</strong><br>
+                        • Check your internet connection<br>
+                        • Verify the VPS is running at ${CONFIG.VPS_URL}<br>
+                        • Try refreshing the page<br>
+                        <button onclick="manualRefresh()" style="margin-top: 0.5rem; background: var(--accent-primary); color: var(--bg-primary); border: none; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); cursor: pointer;">🔄 Retry Now</button>
+                    </p>
+                </div>
+            `;
+            
+            // Only show in dashboard tab to avoid spamming
+            if (document.querySelector('.tab-content.active').id === 'dashboardTab') {
+                elements.metricsGrid.innerHTML = errorMessage;
+                elements.activityFeed.innerHTML = errorMessage;
+            }
+        }
+
+        function manualRefresh() {
+            showNotification('🔄 Attempting to reconnect...', 'info');
+            fetchData();
+        }
+
+        // Performance Optimizations
+        // Memoized rendering functions to prevent unnecessary re-renders
+        const renderCache = new Map();
+
+        function memoizedRender(renderFunction, dataKey, ...args) {
+            const cacheKey = `${dataKey}_${JSON.stringify(args)}`;
+            const dataHash = JSON.stringify(state[dataKey]);
+            
+            if (renderCache.has(cacheKey) && renderCache.get(cacheKey).dataHash === dataHash) {
+                // Return cached result
+                return renderCache.get(cacheKey).result;
+            }
+            
+            // Render and cache result
+            const result = renderFunction(...args);
+            renderCache.set(cacheKey, { dataHash, result });
+            return result;
+        }
+
+        // Optimized render functions
+        function renderMetricsOptimized() {
+            if (!state.metrics) return;
+            
+            // Only re-render if metrics have changed
+            const metricsHash = JSON.stringify(state.metrics);
+            if (renderCache.get('metrics') === metricsHash) {
+                return;
+            }
+            
+            renderMetrics();
+            renderCache.set('metrics', metricsHash);
+        }
+
+        function renderProjectsOptimized() {
+            if (!state.projects) return;
+            
+            const projectsHash = JSON.stringify(state.projects);
+            if (renderCache.get('projects') === projectsHash) {
+                return;
+            }
+            
+            renderProjects();
+            renderCache.set('projects', projectsHash);
+        }
+
+        function renderAgentsOptimized() {
+            if (!state.agents) return;
+            
+            const agentsHash = JSON.stringify(state.agents);
+            if (renderCache.get('agents') === agentsHash) {
+                return;
+            }
+            
+            renderAgents();
+            renderCache.set('agents', agentsHash);
+        }
+
+        function renderActivityFeedOptimized() {
+            if (!state.activityLog) return;
+            
+            const activityHash = JSON.stringify(state.activityLog);
+            if (renderCache.get('activity') === activityHash) {
+                return;
+            }
+            
+            renderActivityFeed();
+            renderCache.set('activity', activityHash);
+        }
+
+        function renderInsightsOptimized() {
+            if (!state.metrics) return;
+            
+            const insightsHash = JSON.stringify(state.metrics);
+            if (renderCache.get('insights') === insightsHash) {
+                return;
+            }
+            
+            renderInsights();
+            renderCache.set('insights', insightsHash);
+        }
+
+        // Replace original render calls with optimized versions in fetchData
+        // (This will be handled by modifying the fetchData function)
+
+        // Debounced search
+        let searchTimeout;
+        function debouncedHandleSearch(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                handleSearch(e);
+            }, 300);
+        }
+
+        // Update event listener to use debounced search
+        function setupEventListeners() {
+            // Tab navigation
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+
+            // Search functionality with debounce
+            elements.searchInput.addEventListener('input', debouncedHandleSearch);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    elements.searchInput.focus();
+                }
+                // Ctrl/Cmd + S for save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveToLocalStorage();
+                    showNotification('Notes saved successfully!', 'success');
+                }
+            });
+
+            // Priority management
+            elements.addPriorityBtn.addEventListener('click', addPriority);
+
+            // Notification close
+            elements.notificationClose.addEventListener('click', hideNotification);
+
+            // Modal close on outside click
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('completeProjectModal');
+                if (e.target === modal) {
+                    hideCompleteProjectModal();
+                }
+            });
+        }
+
         // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', init);
 
@@ -1832,6 +2276,10 @@
         window.configureAgent = configureAgent;
         window.pauseAgent = pauseAgent;
         window.restartAgent = restartAgent;
+        window.showCompleteProjectModal = showCompleteProjectModal;
+        window.hideCompleteProjectModal = hideCompleteProjectModal;
+        window.completeProject = completeProject;
+        window.manualRefresh = manualRefresh;
     </script>
 </body>
 </html>
