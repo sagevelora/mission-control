@@ -607,7 +607,7 @@
         /* Agents Tab - Enhanced Monitoring */
         .agents-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: var(--spacing-lg);
             margin-bottom: var(--spacing-xl);
         }
@@ -619,24 +619,11 @@
             padding: var(--spacing-lg);
             transition: var(--transition-normal);
             position: relative;
-            overflow: hidden;
         }
 
         .agent-card:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
-        }
-
-        .agent-card.critical {
-            border-left: 4px solid var(--accent-error);
-        }
-
-        .agent-card.warning {
-            border-left: 4px solid var(--accent-warning);
-        }
-
-        .agent-card.healthy {
-            border-left: 4px solid var(--accent-success);
         }
 
         .agent-header {
@@ -649,18 +636,6 @@
         .agent-name {
             font-size: 1.1rem;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-
-        .agent-priority-badge {
-            background: var(--accent-purple);
-            color: white;
-            padding: 2px 6px;
-            border-radius: var(--radius-sm);
-            font-size: 0.7rem;
-            font-weight: 600;
         }
 
         .agent-status {
@@ -671,8 +646,8 @@
         }
 
         .agent-status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: var(--radius-full);
         }
 
@@ -709,17 +684,11 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
             margin-bottom: var(--spacing-xs);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
         }
 
         .metric-item-value {
             font-weight: 600;
             font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
         }
 
         .agent-capabilities {
@@ -743,7 +712,6 @@
         .agent-actions {
             display: flex;
             gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-md);
         }
 
         .agent-action-btn {
@@ -775,7 +743,7 @@
         }
 
         .agent-health-bar {
-            height: 6px;
+            height: 4px;
             background: var(--bg-secondary);
             border-radius: var(--radius-full);
             margin-top: var(--spacing-sm);
@@ -795,139 +763,6 @@
 
         .health-fill.critical {
             background: var(--accent-error);
-        }
-
-        /* Historical Metrics Chart */
-        .agent-history {
-            margin-top: var(--spacing-md);
-            padding-top: var(--spacing-md);
-            border-top: 1px solid var(--border-color);
-        }
-
-        .history-title {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .history-chart {
-            height: 60px;
-            position: relative;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-        }
-
-        .history-line {
-            stroke: var(--accent-primary);
-            stroke-width: 2;
-            fill: none;
-        }
-
-        .history-area {
-            fill: rgba(120, 160, 131, 0.1);
-        }
-
-        /* Agent Grouping */
-        .agent-groups {
-            display: flex;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-lg);
-            flex-wrap: wrap;
-        }
-
-        .agent-group-btn {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: var(--transition-fast);
-        }
-
-        .agent-group-btn.active {
-            background: var(--accent-primary);
-            color: var(--bg-primary);
-        }
-
-        /* Agent Details Modal */
-        .agent-details-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease;
-        }
-
-        .agent-details-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .agent-details-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            padding: var(--spacing-xl);
-        }
-
-        .agent-details-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .agent-details-close {
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .details-section {
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .details-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--spacing-md);
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .detail-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: var(--spacing-xs);
-        }
-
-        .detail-value {
-            font-weight: 600;
         }
 
         .activity-log {
@@ -1757,6 +1592,7 @@
                 return `
                     <div class="agent-card">
                         <div class="agent-header">
+
                             <h3 class="agent-name">${agent.name}</h3>
                             <div class="agent-status ${agent.status}">
                                 <span class="agent-status-dot"></span>
