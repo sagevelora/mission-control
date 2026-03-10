@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control - Jack's Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors */
+            --bg-primary: #050508;
+            --bg-secondary: rgba(255, 255, 255, 0.03);
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #78A083;
+            --accent-glow: rgba(120, 160, 131, 0.3);
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --error: #ef4444;
+            --high-priority: #ef4444;
+            --medium-priority: #fbbf24;
+            --low-priority: #4ade80;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 2.5rem;
+            
+            /* Border radius */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.25);
+            
+            /* Animations */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: var(--spacing-md) var(--spacing-2xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .logo-icon {
+            color: var(--accent);
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+        }
+
+        .tab {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-weight: 500;
+            opacity: 0.7;
+        }
+
+        .tab:hover {
+            opacity: 1;
+            background: var(--card-bg);
+        }
+
+        .tab.active {
+            opacity: 1;
+            color: var(--accent);
+            background: var(--card-bg);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            width: 200px;
+            transition: var(--transition-fast);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--error);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--success);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: var(--spacing-2xl);
+            min-height: calc(100vh - 80px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Dashboard Tab */
+        .welcome-bar {
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+
+        .welcome-text {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .current-time {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .metric-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+        }
+
+        .metric-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--accent);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 0.9rem;
+            color: var(--success);
+        }
+
+        .activity-feed {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .feed-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .feed-item {
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .feed-item:last-child {
+            border-bottom: none;
+        }
+
+        .feed-content {
+            flex: 1;
+        }
+
+        .feed-timestamp {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .priorities-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .priorities-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .priorities-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .add-priority-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition-fast);
+        }
+
+        .add-priority-btn:hover {
+            opacity: 0.9;
+        }
+
+        .priority-list {
+            list-style: none;
+        }
+
+        .priority-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .priority-item:last-child {
+            border-bottom: none;
+        }
+
+        .priority-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .priority-text {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        .priority-text.completed {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        /* Projects Tab - Kanban */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .kanban-column {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .column-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .add-task-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition-fast);
+        }
+
+        .add-task-btn:hover {
+            opacity: 0.9;
+        }
+
+        .task-cards {
+            min-height: 100px;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .task-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .task-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            word-break: break-word;
+        }
+
+        .task-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .priority-badge {
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        .priority-high {
+            background: var(--high-priority);
+            color: white;
+        }
+
+        .priority-medium {
+            background: var(--medium-priority);
+            color: black;
+        }
+
+        .priority-low {
+            background: var(--low-priority);
+            color: black;
+        }
+
+        .task-created {
+            white-space: nowrap;
+        }
+
+        /* Timeline Tab */
+        .timeline-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .phase {
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--text-secondary);
+            transition: var(--transition-normal);
+        }
+
+        .phase.current {
+            border-left-color: var(--accent);
+            background: rgba(120, 160, 131, 0.1);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .phase-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .phase-dates {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .phase-description {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
+
+        .milestones {
+            list-style: none;
+        }
+
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .milestone-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+        }
+
+        .milestone-text {
+            flex: 1;
+        }
+
+        .milestone-text.completed {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        /* Notes Tab */
+        .notes-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            height: calc(100vh - 200px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            padding: var(--spacing-md);
+            outline: none;
+        }
+
+        .notes-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--card-border);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-normal);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-primary);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: var(--transition-normal);
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Connection Error */
+        .connection-error {
+            background: var(--error);
+            color: white;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            display: none;
+        }
+
+        .connection-error.show {
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-md);
+            }
+            
+            .tabs {
+                width: 100%;
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: var(--spacing-sm);
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🚀</span>
+            <span>MISSION CONTROL</span>
+        </div>
+        
+        <nav class="tabs">
+            <div class="tab active" data-tab="dashboard">📊 Dashboard</div>
+            <div class="tab" data-tab="projects">📋 Projects</div>
+            <div class="tab" data-tab="timeline">📅 Timeline</div>
+            <div class="tab" data-tab="notes">📝 Notes</div>
+        </nav>
+        
+        <div class="header-right">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search..." />
+            </div>
+            <div class="status-dot" id="statusDot"></div>
+        </div>
+    </header>
+
+    <!-- Connection Error Message -->
+    <div class="connection-error" id="connectionError">
+        No connection to OpenClaw
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboardTab">
+            <div class="welcome-bar">
+                <div class="welcome-text" id="welcomeText">Good morning, Jack</div>
+                <div class="current-time" id="currentTime">Tuesday, March 10, 2026 - 11:07 AM</div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-accent"></div>
+                    <div class="metric-icon">🎯</div>
+                    <div class="metric-label">PCS Progress</div>
+                    <div class="metric-value" id="pcsProgress">0/42</div>
+                    <div class="metric-trend">+0 this week</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-accent"></div>
+                    <div class="metric-icon">💼</div>
+                    <div class="metric-label">Active Projects</div>
+                    <div class="metric-value" id="activeProjects">0</div>
+                    <div class="metric-trend">+0 today</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-accent"></div>
+                    <div class="metric-icon">✅</div>
+                    <div class="metric-label">Tasks Today</div>
+                    <div class="metric-value" id="tasksToday">0</div>
+                    <div class="metric-trend">+0 completed</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-accent"></div>
+                    <div class="metric-icon">⏰</div>
+                    <div class="metric-label">Days to Goal</div>
+                    <div class="metric-value" id="daysToGoal">297</div>
+                    <div class="metric-trend">counting down</div>
+                </div>
+            </div>
+
+            <div class="activity-feed">
+                <div class="feed-title">Recent Activity</div>
+                <div class="feed-items" id="activityFeed">
+                    <!-- Activity items will be populated here -->
+                    <div class="feed-item">
+                        <div class="feed-content">Welcome to Mission Control! Your dashboard is ready.</div>
+                        <div class="feed-timestamp">Just now</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="priorities-section">
+                <div class="priorities-header">
+                    <div class="priorities-title">Top Priorities</div>
+                    <button class="add-priority-btn" id="addPriorityBtn">Add Priority</button>
+                </div>
+                <ul class="priority-list" id="priorityList">
+                    <!-- Priorities will be populated here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Projects Tab -->
+        <div class="tab-content" id="projectsTab">
+            <div class="kanban-board">
+                <div class="kanban-column">
+                    <div class="column-header">
+                        <div class="column-title">Backlog</div>
+                        <button class="add-task-btn" data-column="backlog">+ Add Task</button>
+                    </div>
+                    <div class="task-cards" id="backlogColumn">
+                        <!-- Tasks will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="kanban-column">
+                    <div class="column-header">
+                        <div class="column-title">In Progress</div>
+                        <button class="add-task-btn" data-column="inprogress">+ Add Task</button>
+                    </div>
+                    <div class="task-cards" id="inprogressColumn">
+                        <!-- Tasks will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="kanban-column">
+                    <div class="column-header">
+                        <div class="column-title">Done</div>
+                        <button class="add-task-btn" data-column="done">+ Add Task</button>
+                    </div>
+                    <div class="task-cards" id="doneColumn">
+                        <!-- Tasks will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Tab -->
+        <div class="tab-content" id="timelineTab">
+            <div class="timeline-container">
+                <div class="phases" id="timelinePhases">
+                    <!-- Phases will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Tab -->
+        <div class="tab-content" id="notesTab">
+            <div class="notes-container">
+                <textarea class="notes-textarea" id="notesTextarea" placeholder="Write your notes here..."></textarea>
+                <div class="notes-footer">
+                    <div class="notes-info">
+                        <span id="charCount">0</span> characters
+                    </div>
+                    <div class="notes-last-saved">
+                        Last saved: <span id="lastSaved">Never</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="priorityModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add Priority</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority Text</label>
+                <input type="text" class="form-input" id="priorityText" placeholder="What's your top priority?" />
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="savePriorityBtn">Add Priority</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="taskModalTitle">Add Task</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Task Title</label>
+                <input type="text" class="form-input" id="taskTitle" placeholder="Enter task title" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" id="taskDescription" placeholder="Enter task description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select class="form-select" id="taskPriority">
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary delete-task-btn" id="deleteTaskBtn" style="display: none;">Delete</button>
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="saveTaskBtn">Save Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            VPS_URL: 'http://110.232.114.226:8080',
+            POLL_INTERVAL: 5000,
+            GOAL_DATE: new Date('2027-01-01'),
+            NAME: 'Jack',
+            PCS_GOAL: 42
+        };
+
+        // State management
+        let state = {
+            priorities: [],
+            tasks: { backlog: [], inprogress: [], done: [] },
+            notes: '',
+            metrics: {
+                pcsProgress: 0,
+                activeProjects: 0,
+                tasksToday: 0,
+                daysToGoal: Math.ceil((CONFIG.GOAL_DATE - new Date()) / (1000 * 60 * 60 * 24))
+            },
+            timeline: [
+                {
+                    id: 'phase1',
+                    id: 'phase1',
+                    title: 'Foundation Phase',
+                    startDate: '2026-01-01',
+                    endDate: '2026-06-30',
+                    description: 'Establish core infrastructure and complete foundational projects.',
+                    milestones: [
+                        { text: 'Set up development environment', completed: true },
+                        { text: 'Complete first 10 projects', completed: false },
+                        { text: 'Deploy monitoring system', completed: false }
+                    ],
+                    current: true
+                },
+                {
+                    id: 'phase2',
+                    title: 'Growth Phase',
+                    startDate: '2026-07-01',
+                    endDate: '2026-12-31',
+                    description: 'Scale operations and accelerate project completion rate.',
+                    milestones: [
+                        { text: 'Complete projects 11-30', completed: false },
+                        { text: 'Optimize workflows', completed: false },
+                        { text: 'Implement automation', completed: false }
+                    ],
+                    current: false
+                },
+                {
+                    id: 'phase3',
+                    title: 'Completion Phase',
+                    startDate: '2027-01-01',
+                    endDate: '2027-01-01',
+                    description: 'Final push to complete remaining projects and celebrate success.',
+                    milestones: [
+                        { text: 'Complete final 12 projects', completed: false },
+                        { text: 'Document all systems', completed: false },
+                        { text: 'Celebrate 42 PCS achievement!', completed: false }
+                    ],
+                    current: false
+                }
+            ]
+        };
+
+        // DOM Elements
+        const elements = {
+            tabs: document.querySelectorAll('.tab'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            searchInput: document.getElementById('searchInput'),
+            statusDot: document.getElementById('statusDot'),
+            connectionError: document.getElementById('connectionError'),
+            welcomeText: document.getElementById('welcomeText'),
+            currentTime: document.getElementById('currentTime'),
+            pcsProgress: document.getElementById('pcsProgress'),
+            activeProjects: document.getElementById('activeProjects'),
+            tasksToday: document.getElementById('tasksToday'),
+            daysToGoal: document.getElementById('daysToGoal'),
+            activityFeed: document.getElementById('activityFeed'),
+            priorityList: document.getElementById('priorityList'),
+            addPriorityBtn: document.getElementById('addPriorityBtn'),
+            priorityModal: document.getElementById('priorityModal'),
+            priorityText: document.getElementById('priorityText'),
+            savePriorityBtn: document.getElementById('savePriorityBtn'),
+            backlogColumn: document.getElementById('backlogColumn'),
+            inprogressColumn: document.getElementById('inprogressColumn'),
+            doneColumn: document.getElementById('doneColumn'),
+            timelinePhases: document.getElementById('timelinePhases'),
+            notesTextarea: document.getElementById('notesTextarea'),
+            charCount: document.getElementById('charCount'),
+            lastSaved: document.getElementById('lastSaved'),
+            taskModal: document.getElementById('taskModal'),
+            taskModalTitle: document.getElementById('taskModalTitle'),
+            taskTitle: document.getElementById('taskTitle'),
+            taskDescription: document.getElementById('taskDescription'),
+            taskPriority: document.getElementById('taskPriority'),
+            saveTaskBtn: document.getElementById('saveTaskBtn'),
+            deleteTaskBtn: document.getElementById('deleteTaskBtn')
+        };
+
+        // Utility Functions
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'Good morning';
+            if (hour < 18) return 'Good afternoon';
+            return 'Good evening';
+        }
+
+        function formatDateTime(date) {
+            return date.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function addToActivity(text) {
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `
+                <div class="feed-content">${text}</div>
+                <div class="feed-timestamp">Just now</div>
+            `;
+            elements.activityFeed.insertBefore(item, elements.activityFeed.firstChild);
+            
+            // Keep only last 20 items
+            if (elements.activityFeed.children.length > 20) {
+                elements.activityFeed.removeChild(elements.activityFeed.lastChild);
+            }
+        }
+
+        function showConnectionError(show) {
+            elements.connectionError.classList.toggle('show', show);
+            elements.statusDot.classList.toggle('connected', !show);
+        }
+
+        // Data Management
+        function loadFromLocalStorage() {
+            try {
+                const priorities = localStorage.getItem('missionControl.priorities');
+                const tasks = localStorage.getItem('missionControl.tasks');
+                const notes = localStorage.getItem('missionControl.notes');
+                const timeline = localStorage.getItem('missionControl.timeline');
+
+                if (priorities) state.priorities = JSON.parse(priorities);
+                if (tasks) state.tasks = JSON.parse(tasks);
+                if (notes) state.notes = notes;
+                if (timeline) state.timeline = JSON.parse(timeline);
+            } catch (e) {
+                console.error('Error loading from localStorage:', e);
+                addToActivity('Error loading saved data');
+            }
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('missionControl.priorities', JSON.stringify(state.priorities));
+                localStorage.setItem('missionControl.tasks', JSON.stringify(state.tasks));
+                localStorage.setItem('missionControl.notes', state.notes);
+                localStorage.setItem('missionControl.timeline', JSON.stringify(state.timeline));
+                elements.lastSaved.textContent = new Date().toLocaleTimeString();
+            } catch (e) {
+                console.error('Error saving to localStorage:', e);
+                addToActivity('Error saving data');
+            }
+        }
+
+        // UI Rendering
+        function renderWelcome() {
+            elements.welcomeText.textContent = `${getGreeting()}, ${CONFIG.NAME}`;
+            elements.currentTime.textContent = formatDateTime(new Date());
+        }
+
+        function renderMetrics() {
+            elements.pcsProgress.textContent = `${state.metrics.pcsProgress}/${CONFIG.PCS_GOAL}`;
+            elements.activeProjects.textContent = state.metrics.activeProjects;
+            elements.tasksToday.textContent = state.metrics.tasksToday;
+            elements.daysToGoal.textContent = state.metrics.daysToGoal;
+        }
+
+        function renderPriorities() {
+            elements.priorityList.innerHTML = '';
+            state.priorities.forEach((priority, index) => {
+                const li = document.createElement('li');
+                li.className = 'priority-item';
+                li.innerHTML = `
+                    <input type="checkbox" class="priority-checkbox" ${priority.completed ? 'checked' : ''} data-index="${index}">
+                    <span class="priority-text ${priority.completed ? 'completed' : ''}">${priority.text}</span>
+                `;
+                elements.priorityList.appendChild(li);
+            });
+        }
+
+        function renderTasks() {
+            // Clear columns
+            elements.backlogColumn.innerHTML = '';
+            elements.inprogressColumn.innerHTML = '';
+            elements.doneColumn.innerHTML = '';
+
+            // Render tasks for each column
+            Object.keys(state.tasks).forEach(column => {
+                state.tasks[column].forEach((task, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
+                    card.dataset.column = column;
+                    card.dataset.index = index;
+                    card.innerHTML = `
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-description">${task.description || ''}</div>
+                        <div class="task-meta">
+                            <span class="priority-badge priority-${task.priority}">${task.priority}</span>
+                            <span class="task-created">${formatDate(task.created)}</span>
+                        </div>
+                    `;
+                    document.getElementById(`${column}Column`).appendChild(card);
+                });
+            });
+        }
+
+        function renderTimeline() {
+            elements.timelinePhases.innerHTML = '';
+            state.timeline.forEach(phase => {
+                const phaseEl = document.createElement('div');
+                phaseEl.className = `phase ${phase.current ? 'current' : ''}`;
+                phaseEl.innerHTML = `
+                    <div class="phase-title">
+                        ${phase.title}
+                        ${phase.current ? '<span style="color: var(--accent);">●</span>' : ''}
+                    </div>
+                    <div class="phase-dates">${formatDate(phase.startDate)} - ${formatDate(phase.endDate)}</div>
+                    <div class="phase-description">${phase.description}</div>
+                    <ul class="milestones">
+                        ${phase.milestones.map(milestone => `
+                            <li class="milestone-item">
+                                <input type="checkbox" class="milestone-checkbox" ${milestone.completed ? 'checked' : ''}>
+                                <span class="milestone-text ${milestone.completed ? 'completed' : ''}">${milestone.text}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                elements.timelinePhases.appendChild(phaseEl);
+            });
+        }
+
+        function renderNotes() {
+            elements.notesTextarea.value = state.notes;
+            elements.charCount.textContent = state.notes.length;
+        }
+
+        // Event Handlers
+        function initEventListeners() {
+            // Tab switching
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    elements.tabs.forEach(t => t.classList.remove('active'));
+                    elements.tabContents.forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}Tab`).classList.add('active');
+                });
+            });
+
+            // Search functionality
+            elements.searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                // TODO: Implement search across all content
+            });
+
+            // Priority management
+            elements.addPriorityBtn.addEventListener('click', () => {
+                elements.priorityText.value = '';
+                elements.priorityModal.classList.add('active');
+            });
+
+            elements.savePriorityBtn.addEventListener('click', () => {
+                const text = elements.priorityText.value.trim();
+                if (text) {
+                    state.priorities.push({ text, completed: false });
+                    saveToLocalStorage();
+                    renderPriorities();
+                    addToActivity(`Added priority: "${text}"`);
+                    elements.priorityModal.classList.remove('active');
+                }
+            });
+
+            elements.priorityList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('priority-checkbox')) {
+                    const index = parseInt(e.target.dataset.index);
+                    state.priorities[index].completed = e.target.checked;
+                    saveToLocalStorage();
+                    renderPriorities();
+                    addToActivity(`Priority marked as ${e.target.checked ? 'completed' : 'incomplete'}`);
+                }
+            });
+
+            // Task management
+            document.querySelectorAll('.add-task-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const column = e.target.dataset.column;
+                    openTaskModal(null, column);
+                });
+            });
+
+            document.querySelectorAll('.task-cards').forEach(column => {
+                column.addEventListener('click', (e) => {
+                    if (e.target.closest('.task-card')) {
+                        const card = e.target.closest('.task-card');
+                        const column = card.dataset.column;
+                        const index = parseInt(card.dataset.index);
+                        openTaskModal({ column, index }, null);
+                    }
+                });
+            });
+
+            elements.saveTaskBtn.addEventListener('click', () => {
+                const title = elements.taskTitle.value.trim();
+                if (!title) return;
+
+                const task = {
+                    title,
+                    description: elements.taskDescription.value.trim(),
+                    priority: elements.taskPriority.value,
+                    created: new Date().toISOString()
+                };
+
+                if (currentEditTask) {
+                    // Edit existing task
+                    state.tasks[currentEditTask.column][currentEditTask.index] = task;
+                    addToActivity(`Updated task: "${title}"`);
+                } else {
+                    // Add new task
+                    state.tasks[currentTaskColumn].push(task);
+                    addToActivity(`Added task to ${currentTaskColumn}: "${title}"`);
+                }
+
+                saveToLocalStorage();
+                renderTasks();
+                closeTaskModal();
+            });
+
+            elements.deleteTaskBtn.addEventListener('click', () => {
+                if (currentEditTask) {
+                    state.tasks[currentEditTask.column].splice(currentEditTask.index, 1);
+                    saveToLocalStorage();
+                    renderTasks();
+                    addToActivity('Task deleted');
+                    closeTaskModal();
+                }
+            });
+
+            // Notes auto-save
+            elements.notesTextarea.addEventListener('input', () => {
+                state.notes = elements.notesTextarea.value;
+                elements.charCount.textContent = state.notes.length;
+                saveToLocalStorage();
+            });
+
+            // Modal close buttons
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    elements.priorityModal.classList.remove('active');
+                    elements.taskModal.classList.remove('active');
+                });
+            });
+
+            // Close modals when clicking outside
+            [elements.priorityModal, elements.taskModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    elements.searchInput.focus();
+                }
+            });
+        }
+
+        // Task Modal Management
+        let currentEditTask = null;
+        let currentTaskColumn = null;
+
+        function openTaskModal(taskRef, column) {
+            currentEditTask = taskRef;
+            currentTaskColumn = column;
+
+            if (taskRef) {
+                // Editing existing task
+                const task = state.tasks[taskRef.column][taskRef.index];
+                elements.taskModalTitle.textContent = 'Edit Task';
+                elements.taskTitle.value = task.title;
+                elements.taskDescription.value = task.description || '';
+                elements.taskPriority.value = task.priority;
+                elements.deleteTaskBtn.style.display = 'inline-block';
+            } else {
+                // Adding new task
+                elements.taskModalTitle.textContent = 'Add Task';
+                elements.taskTitle.value = '';
+                elements.taskDescription.value = '';
+                elements.taskPriority.value = 'medium';
+                elements.deleteTaskBtn.style.display = 'none';
+            }
+
+            elements.taskModal.classList.add('active');
+        }
+
+        function closeTaskModal() {
+            elements.taskModal.classList.remove('active');
+            currentEditTask = null;
+            currentTaskColumn = null;
+        }
+
+        // VPS Communication
+        async function fetchVPSData() {
+            try {
+                const response = await fetch(`${CONFIG.VPS_URL}/api/metrics`);
+                if (!response.ok) throw new Error('Failed to fetch metrics');
+                const data = await response.json();
+                
+                // Update metrics
+                state.metrics = {
+                    ...state.metrics,
+                    pcsProgress: data.pcsProgress || 0,
+                    activeProjects: data.activeProjects || 0,
+                    tasksToday: data.tasksToday || 0
+                };
+                
+                renderMetrics();
+                showConnectionError(false);
+            } catch (error) {
+                console.error('VPS fetch error:', error);
+                showConnectionError(true);
+            }
+        }
+
+        // Initialize
+        function init() {
+            loadFromLocalStorage();
+            renderWelcome();
+            renderMetrics();
+            renderPriorities();
+            renderTasks();
+            renderTimeline();
+            renderNotes();
+            initEventListeners();
+            
+            // Start polling
+            fetchVPSData(); // Initial fetch
+            setInterval(fetchVPSData, CONFIG.POLL_INTERVAL);
+            
+            // Update time every minute
+            setInterval(renderWelcome, 60000);
+            
+            // Update days to goal daily
+            setInterval(() => {
+                state.metrics.daysToGoal = Math.ceil((CONFIG.GOAL_DATE - new Date()) / (1000 * 60 * 60 * 24));
+                renderMetrics();
+            }, 3600000);
+        }
+
+        // Start the application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
