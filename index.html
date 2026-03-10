@@ -22,6 +22,7 @@
             --accent-warning: #FF9800;
             --accent-error: #F44336;
             --accent-info: #2196F3;
+            --accent-purple: #9C27B0;
             
             /* Status Colors */
             --status-online: #4CAF50;
@@ -42,11 +43,13 @@
             --radius-md: 0.5rem;
             --radius-lg: 0.75rem;
             --radius-xl: 1rem;
+            --radius-full: 50%;
             
             /* Shadows */
             --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
             --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
             --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.3);
             
             /* Animations */
             --transition-fast: 0.15s ease-in-out;
@@ -153,7 +156,7 @@
         .status-dot {
             width: 8px;
             height: 8px;
-            border-radius: 50%;
+            border-radius: var(--radius-full);
             background: var(--status-online);
             animation: pulse 2s infinite;
         }
@@ -227,6 +230,8 @@
             transition: var(--transition-normal);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
         }
 
         .metric-card:hover {
@@ -452,6 +457,7 @@
             margin-bottom: var(--spacing-md);
             cursor: pointer;
             transition: var(--transition-fast);
+            position: relative;
         }
 
         .task-card:hover {
@@ -507,165 +513,98 @@
             font-size: 0.8rem;
         }
 
-        /* Timeline Tab */
-        .timeline-container {
-            position: relative;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .timeline-today-marker {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--accent-primary);
-            z-index: 1;
-            box-shadow: 0 0 10px var(--accent-primary);
-        }
-
-        .timeline-today-label {
-            position: absolute;
-            top: -30px;
-            transform: translateX(-50%);
-            background: var(--accent-primary);
-            color: var(--bg-primary);
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--radius-sm);
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .timeline-phases {
-            display: flex;
-            flex-direction: column;
+        /* Insights Tab - Enhanced Productivity Analytics */
+        .insights-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: var(--spacing-lg);
         }
 
-        .timeline-phase {
+        .insight-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
             padding: var(--spacing-lg);
-            position: relative;
             transition: var(--transition-normal);
+            position: relative;
         }
 
-        .timeline-phase.current {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 20px rgba(120, 160, 131, 0.3);
+        .insight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
 
-        .phase-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .phase-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .phase-dates {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .phase-description {
-            color: var(--text-secondary);
-            margin-bottom: var(--spacing-md);
-            line-height: 1.5;
-        }
-
-        .milestones-list {
-            list-style: none;
-        }
-
-        .milestone-item {
+        .insight-header {
             display: flex;
             align-items: center;
             gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+        }
+
+        .insight-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .insight-content {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .insight-metric {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: var(--spacing-md) 0;
+            color: var(--accent-primary);
+        }
+
+        .recommendation-list {
+            list-style: none;
+            margin-top: var(--spacing-md);
+        }
+
+        .recommendation-item {
             padding: var(--spacing-sm) 0;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .milestone-item:last-child {
+        .recommendation-item:last-child {
             border-bottom: none;
         }
 
-        .milestone-checkbox {
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
+        .recommendation-action {
+            color: var(--accent-primary);
+            font-weight: 500;
             cursor: pointer;
+        }
+
+        .recommendation-action:hover {
+            text-decoration: underline;
+        }
+
+        /* Trend visualization */
+        .trend-chart {
+            height: 80px;
+            margin: var(--spacing-md) 0;
             position: relative;
         }
 
-        .milestone-checkbox:checked {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
+        .trend-line {
+            stroke: var(--accent-primary);
+            stroke-width: 2;
+            fill: none;
         }
 
-        .milestone-checkbox:checked::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 6px;
-            height: 6px;
-            background: var(--bg-primary);
-            border-radius: 50%;
+        .trend-area {
+            fill: rgba(120, 160, 131, 0.1);
         }
 
-        .milestone-text {
-            flex: 1;
-        }
-
-        .milestone-text.completed {
-            text-decoration: line-through;
-            color: var(--text-muted);
-        }
-
-        /* Notes Tab */
-        .notes-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-        }
-
-        .notes-textarea {
-            width: 100%;
-            min-height: 400px;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-family: 'Inter', monospace;
-            font-size: 1rem;
-            line-height: 1.6;
-            resize: vertical;
-            padding: 0;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .notes-textarea:focus {
-            outline: none;
-        }
-
-        .notes-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        /* Agents Tab */
+        /* Agents Tab - Enhanced Monitoring */
         .agents-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -679,6 +618,7 @@
             border-radius: var(--radius-lg);
             padding: var(--spacing-lg);
             transition: var(--transition-normal);
+            position: relative;
         }
 
         .agent-card:hover {
@@ -708,7 +648,7 @@
         .agent-status-dot {
             width: 8px;
             height: 8px;
-            border-radius: 50%;
+            border-radius: var(--radius-full);
         }
 
         .agent-status.online .agent-status-dot {
@@ -751,6 +691,24 @@
             font-size: 1rem;
         }
 
+        .agent-capabilities {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .capabilities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .capability-tag {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
         .agent-actions {
             display: flex;
             gap: var(--spacing-sm);
@@ -782,6 +740,29 @@
 
         .agent-action-btn.configure {
             color: var(--accent-primary);
+        }
+
+        .agent-health-bar {
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-full);
+            margin-top: var(--spacing-sm);
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: var(--accent-success);
+            border-radius: var(--radius-full);
+            transition: var(--transition-normal);
+        }
+
+        .health-fill.warning {
+            background: var(--accent-warning);
+        }
+
+        .health-fill.critical {
+            background: var(--accent-error);
         }
 
         .activity-log {
@@ -825,43 +806,69 @@
             color: var(--accent-primary);
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: var(--spacing-md);
-                padding: var(--spacing-md);
-            }
-            
-            .nav-tabs {
-                flex-wrap: wrap;
-                justify-content: flex-start;
-            }
-            
-            .search-section {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            .search-input {
-                width: 150px;
-            }
-            
-            .main-content {
-                padding: var(--spacing-lg);
-            }
-            
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .kanban-board {
-                grid-template-columns: 1fr;
-            }
-            
-            .agents-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Notes Tab */
+        .notes-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+        }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 400px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Inter', monospace;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            padding: 0;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+        }
+
+        .notes-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Notifications */
+        .notification-banner {
+            position: fixed;
+            top: 0;
+            right: 0;
+            margin: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--accent-info);
+            color: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .notification-banner.show {
+            transform: translateX(0);
+        }
+
+        .notification-close {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            background: none;
+            border: none;
+            color: var(--bg-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
         }
 
         /* Loading States */
@@ -906,6 +913,95 @@
         .text-info {
             color: var(--accent-info);
         }
+
+        .text-purple {
+            color: var(--accent-purple);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-md);
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+            
+            .search-section {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-input {
+                width: 150px;
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .metrics-grid,
+            .insights-container,
+            .agents-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+            
+            .notification-banner {
+                margin: var(--spacing-md);
+                width: calc(100% - 2 * var(--spacing-md));
+            }
+        }
+
+        /* Performance indicators */
+        .performance-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: var(--radius-full);
+            margin-right: var(--spacing-xs);
+        }
+
+        .performance-good {
+            background: var(--accent-success);
+        }
+
+        .performance-warning {
+            background: var(--accent-warning);
+        }
+
+        .performance-critical {
+            background: var(--accent-error);
+        }
+
+        /* Collaboration indicators */
+        .collaboration-badge {
+            background: var(--accent-purple);
+            color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: var(--spacing-xs);
+        }
+
+        /* Security indicators */
+        .security-badge {
+            background: var(--accent-warning);
+            color: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: var(--spacing-xs);
+        }
     </style>
 </head>
 <body>
@@ -918,7 +1014,7 @@
         <nav class="nav-tabs">
             <div class="nav-tab active" data-tab="dashboard">📊 Dashboard</div>
             <div class="nav-tab" data-tab="projects">📋 Projects</div>
-            <div class="nav-tab" data-tab="timeline">📅 Timeline</div>
+            <div class="nav-tab" data-tab="insights">💡 Insights</div>
             <div class="nav-tab" data-tab="agents">🤖 Agents</div>
             <div class="nav-tab" data-tab="notes">📝 Notes</div>
         </nav>
@@ -931,6 +1027,12 @@
             </div>
         </div>
     </header>
+
+    <!-- Notification Banner -->
+    <div class="notification-banner" id="notificationBanner">
+        <button class="notification-close" id="notificationClose">×</button>
+        <div id="notificationContent"></div>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -971,15 +1073,15 @@
             </div>
         </div>
 
-        <!-- Timeline Tab -->
-        <div class="tab-content" id="timelineTab">
-            <div class="timeline-container" id="timelineContainer">
-                <!-- Timeline will be populated by JS -->
-                <div class="loading">Loading timeline...</div>
+        <!-- Insights Tab - Enhanced Productivity Analytics -->
+        <div class="tab-content" id="insightsTab">
+            <div class="insights-container" id="insightsContainer">
+                <!-- Insights will be populated by JS -->
+                <div class="loading">Loading insights...</div>
             </div>
         </div>
 
-        <!-- Agents Tab -->
+        <!-- Agents Tab - Enhanced Monitoring -->
         <div class="tab-content" id="agentsTab">
             <div class="agents-grid" id="agentsGrid">
                 <!-- Agent cards will be populated by JS -->
@@ -1009,19 +1111,21 @@
         const CONFIG = {
             VPS_URL: 'http://110.232.114.226:3001',
             POLL_INTERVAL: 5000,
-            MAX_ACTIVITY_ITEMS: 50
+            MAX_ACTIVITY_ITEMS: 50,
+            NOTIFICATION_DURATION: 5000
         };
 
         // State management
         let state = {
             metrics: null,
             projects: [],
-            timeline: null,
             agents: [],
             activityLog: [],
             priorities: [],
             notes: '',
-            connectionStatus: 'connected'
+            connectionStatus: 'connected',
+            notifications: [],
+            isVisible: true // Track if tab is visible
         };
 
         // DOM Elements
@@ -1038,12 +1142,15 @@
             priorityList: document.getElementById('priorityList'),
             addPriorityBtn: document.getElementById('addPriorityBtn'),
             kanbanBoard: document.getElementById('kanbanBoard'),
-            timelineContainer: document.getElementById('timelineContainer'),
+            insightsContainer: document.getElementById('insightsContainer'),
             agentsGrid: document.getElementById('agentsGrid'),
             agentsActivityLog: document.getElementById('agentsActivityLog'),
             notesTextarea: document.getElementById('notesTextarea'),
             charCount: document.getElementById('charCount'),
-            lastSaved: document.getElementById('lastSaved')
+            lastSaved: document.getElementById('lastSaved'),
+            notificationBanner: document.getElementById('notificationBanner'),
+            notificationContent: document.getElementById('notificationContent'),
+            notificationClose: document.getElementById('notificationClose')
         };
 
         // Initialize the application
@@ -1055,6 +1162,8 @@
             setInterval(updateCurrentTime, 1000);
             startDataPolling();
             setupNotesAutoSave();
+            setupNotificationSystem();
+            setupVisibilityTracking();
         }
 
         // Set up event listeners
@@ -1076,10 +1185,30 @@
                     e.preventDefault();
                     elements.searchInput.focus();
                 }
+                // Ctrl/Cmd + S for save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveToLocalStorage();
+                    showNotification('Notes saved successfully!', 'success');
+                }
             });
 
             // Priority management
             elements.addPriorityBtn.addEventListener('click', addPriority);
+
+            // Notification close
+            elements.notificationClose.addEventListener('click', hideNotification);
+        }
+
+        // Track tab visibility for adaptive polling
+        function setupVisibilityTracking() {
+            document.addEventListener('visibilitychange', () => {
+                state.isVisible = !document.hidden;
+                if (state.isVisible) {
+                    // Refresh data when tab becomes visible
+                    fetchData();
+                }
+            });
         }
 
         // Switch between tabs
@@ -1144,6 +1273,7 @@
                 }
             } catch (error) {
                 console.error('Error loading from localStorage:', error);
+                showNotification('Error loading saved data', 'error');
             }
         }
 
@@ -1156,21 +1286,31 @@
                     lastUpdated: new Date().toISOString()
                 };
                 localStorage.setItem('missionControlState', JSON.stringify(saveState));
+                return true;
             } catch (error) {
                 console.error('Error saving to localStorage:', error);
+                showNotification('Error saving data', 'error');
+                return false;
             }
         }
 
         // Setup notes auto-save
         function setupNotesAutoSave() {
+            let saveTimeout;
             elements.notesTextarea.addEventListener('input', () => {
                 state.notes = elements.notesTextarea.value;
                 updateCharCount();
-                saveToLocalStorage();
-                elements.lastSaved.textContent = 'Last saved: Just now';
-                setTimeout(() => {
-                    elements.lastSaved.textContent = `Last saved: ${new Date().toLocaleTimeString()}`;
-                }, 2000);
+                
+                // Debounce save
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    if (saveToLocalStorage()) {
+                        elements.lastSaved.textContent = 'Last saved: Just now';
+                        setTimeout(() => {
+                            elements.lastSaved.textContent = `Last saved: ${new Date().toLocaleTimeString()}`;
+                        }, 2000);
+                    }
+                }, 1000);
             });
         }
 
@@ -1193,6 +1333,7 @@
                 state.priorities.push(newPriority);
                 renderPriorities();
                 saveToLocalStorage();
+                showNotification('Priority added successfully!', 'success');
             }
         }
 
@@ -1203,6 +1344,7 @@
                 priority.completed = !priority.completed;
                 renderPriorities();
                 saveToLocalStorage();
+                showNotification(`Priority ${priority.completed ? 'completed' : 'marked incomplete'}!`, 'info');
             }
         }
 
@@ -1228,44 +1370,64 @@
             setInterval(fetchData, CONFIG.POLL_INTERVAL);
         }
 
-        // Fetch data from VPS endpoints
+        // Fetch data from VPS endpoints with proper error handling
         async function fetchData() {
+            // Don't poll if tab is not visible
+            if (!state.isVisible) {
+                return;
+            }
+
             try {
-                const [metricsRes, projectsRes, timelineRes, activityRes] = await Promise.all([
+                // Fetch all endpoints in parallel
+                const endpoints = [
                     fetch(`${CONFIG.VPS_URL}/api/metrics`),
                     fetch(`${CONFIG.VPS_URL}/api/projects`),
-                    fetch(`${CONFIG.VPS_URL}/api/timeline`),
+                    fetch(`${CONFIG.VPS_URL}/api/agents`),
                     fetch(`${CONFIG.VPS_URL}/api/activity`)
-                ]);
+                ];
 
-                if (metricsRes.ok && projectsRes.ok && timelineRes.ok && activityRes.ok) {
-                    const [metrics, projects, timeline, activity] = await Promise.all([
+                const responses = await Promise.all(endpoints);
+
+                // Check if all responses are ok
+                if (responses.every(res => res.ok)) {
+                    const [metricsRes, projectsRes, agentsRes, activityRes] = responses;
+                    const [metrics, projects, agents, activity] = await Promise.all([
                         metricsRes.json(),
                         projectsRes.json(),
-                        timelineRes.json(),
+                        agentsRes.json(),
                         activityRes.json()
                     ]);
 
+                    // Update state
                     state.metrics = metrics;
                     state.projects = projects;
-                    state.timeline = timeline;
+                    state.agents = agents;
                     state.activityLog = activity.slice(0, CONFIG.MAX_ACTIVITY_ITEMS);
                     
                     state.connectionStatus = 'connected';
                     updateConnectionStatus();
                     
+                    // Render all tabs
                     renderMetrics();
                     renderProjects();
-                    renderTimeline();
+                    renderAgents();
                     renderActivityFeed();
+                    renderInsights();
+                    
+                    // Check for alerts and notifications
+                    checkAlerts();
                 } else {
-                    throw new Error('Failed to fetch data');
+                    throw new Error('One or more API endpoints failed');
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
                 state.connectionStatus = 'disconnected';
                 updateConnectionStatus();
-                showErrorMessage('No connection to OpenClaw VPS');
+                
+                // Only show error in dashboard tab to avoid spamming
+                if (document.querySelector('.tab-content.active').id === 'dashboardTab') {
+                    showErrorMessage('No connection to OpenClaw VPS');
+                }
             }
         }
 
@@ -1282,11 +1444,8 @@
 
         // Show error message
         function showErrorMessage(message) {
-            // Only show in dashboard tab for now
-            if (document.querySelector('.tab-content.active').id === 'dashboardTab') {
-                elements.metricsGrid.innerHTML = `<div class="error-message">${message}</div>`;
-                elements.activityFeed.innerHTML = `<div class="error-message">${message}</div>`;
-            }
+            elements.metricsGrid.innerHTML = `<div class="error-message">${message}</div>`;
+            elements.activityFeed.innerHTML = `<div class="error-message">${message}</div>`;
         }
 
         // Render metrics cards
@@ -1302,7 +1461,7 @@
                     </div>
                     <div class="metric-value">${state.metrics.pcsProgress}/42</div>
                     <div class="metric-trend">
-                        <span>▲ 2 this week</span>
+                        <span>▲ 0 this week</span>
                     </div>
                 </div>
                 <div class="metric-card">
@@ -1324,7 +1483,7 @@
                     </div>
                     <div class="metric-value">${state.metrics.tasksToday}</div>
                     <div class="metric-trend">
-                        <span>▲ 3 vs yesterday</span>
+                        <span>▲ 0 vs yesterday</span>
                     </div>
                 </div>
                 <div class="metric-card">
@@ -1403,47 +1562,132 @@
             elements.kanbanBoard.innerHTML = kanbanHTML;
         }
 
-        // Render timeline
-        function renderTimeline() {
-            if (!state.timeline || !state.timeline.phases) {
-                elements.timelineContainer.innerHTML = '<div class="text-center text-muted">No timeline data</div>';
+        // Render agents
+        function renderAgents() {
+            if (!state.agents.length) {
+                elements.agentsGrid.innerHTML = '<div class="text-center text-muted">No agents running</div>';
                 return;
             }
 
-            // Calculate today's position for the marker
-            const today = new Date();
-            const startDate = new Date('2026-01-01');
-            const endDate = new Date('2027-01-01');
-            const totalDuration = endDate.getTime() - startDate.getTime();
-            const daysFromStart = today.getTime() - startDate.getTime();
-            const todayPercentage = Math.max(0, Math.min(100, (daysFromStart / totalDuration) * 100));
-
-            const timelineHTML = `
-                <div class="timeline-today-marker" style="left: ${todayPercentage}%">
-                    <div class="timeline-today-label">Today</div>
-                </div>
-                <div class="timeline-phases">
-                    ${state.timeline.phases.map(phase => `
-                        <div class="timeline-phase ${phase.current ? 'current' : ''}">
-                            <div class="phase-header">
-                                <h3 class="phase-title">${phase.title}</h3>
-                                <span class="phase-dates">${phase.startDate} - ${phase.endDate}</span>
+            const agentsHTML = state.agents.map(agent => {
+                // Calculate health scores based on research recommendations
+                const cpuHealth = agent.health.cpu < 80 ? 'good' : agent.health.cpu < 90 ? 'warning' : 'critical';
+                const memoryHealth = agent.health.memory < 800 ? 'good' : agent.health.memory < 900 ? 'warning' : 'critical';
+                const responseHealth = agent.health.responseTime < 200 ? 'good' : agent.health.responseTime < 500 ? 'warning' : 'critical';
+                
+                return `
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <h3 class="agent-name">${agent.name}</h3>
+                            <div class="agent-status ${agent.status}">
+                                <span class="agent-status-dot"></span>
+                                <span>${agent.status.charAt(0).toUpperCase() + agent.status.slice(1)}</span>
                             </div>
-                            <p class="phase-description">${phase.description}</p>
-                            <ul class="milestones-list">
-                                ${phase.milestones.map(milestone => `
-                                    <li class="milestone-item">
-                                        <input type="checkbox" class="milestone-checkbox" ${milestone.completed ? 'checked' : ''}>
-                                        <span class="milestone-text ${milestone.completed ? 'completed' : ''}">${milestone.title}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
                         </div>
-                    `).join('')}
+                        <div class="agent-metrics">
+                            <div class="metric-item">
+                                <span class="metric-item-label">CPU Usage</span>
+                                <span class="metric-item-value">
+                                    ${agent.health.cpu}% 
+                                    <span class="performance-indicator performance-${cpuHealth}"></span>
+                                </span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-item-label">Memory</span>
+                                <span class="metric-item-value">
+                                    ${agent.health.memory}MB 
+                                    <span class="performance-indicator performance-${memoryHealth}"></span>
+                                </span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-item-label">Response Time</span>
+                                <span class="metric-item-value">
+                                    ${agent.health.responseTime}ms 
+                                    <span class="performance-indicator performance-${responseHealth}"></span>
+                                </span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-item-label">Uptime</span>
+                                <span class="metric-item-value">${formatUptime(agent.uptimeSeconds)}</span>
+                            </div>
+                        </div>
+                        <div class="agent-capabilities">
+                            <div class="capabilities-list">
+                                ${agent.capabilities.map(cap => `<span class="capability-tag">${cap}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="agent-health-bar">
+                            <div class="health-fill ${cpuHealth === 'critical' ? 'critical' : cpuHealth === 'warning' ? 'warning' : ''}" 
+                                 style="width: ${Math.min(100, agent.health.cpu)}%"></div>
+                        </div>
+                        <div class="agent-actions">
+                            <button class="agent-action-btn configure" onclick="configureAgent('${agent.id}')">Configure</button>
+                            <button class="agent-action-btn pause" onclick="pauseAgent('${agent.id}')">Pause</button>
+                            <button class="agent-action-btn restart" onclick="restartAgent('${agent.id}')">Restart</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            elements.agentsGrid.innerHTML = agentsHTML;
+        }
+
+        // Render insights (enhanced productivity analytics)
+        function renderInsights() {
+            // Remove fake productivity insights endpoint since it doesn't exist
+            // Replace with useful insights based on actual available data
+            
+            const pcsProgress = state.metrics ? state.metrics.pcsProgress : 0;
+            const daysToGoal = state.metrics ? state.metrics.daysToGoal : 297;
+            const activeProjects = state.metrics ? state.metrics.activeProjects : 0;
+            
+            const insightsHTML = `
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">📊</span>
+                        <h3 class="insight-title">Project Completion Status</h3>
+                    </div>
+                    <div class="insight-content">
+                        Current progress toward your 42-project goal.
+                        <div class="insight-metric">${pcsProgress}/42</div>
+                        <p>You have ${42 - pcsProgress} projects remaining to reach your goal by January 1st, 2027.</p>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">⏰</span>
+                        <h3 class="insight-title">Timeline Pressure</h3>
+                    </div>
+                    <div class="insight-content">
+                        Days remaining until your deadline.
+                        <div class="insight-metric">${daysToGoal} days</div>
+                        <p>You need to complete approximately ${(42 - pcsProgress) / (daysToGoal / 7)} projects per week to stay on track.</p>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">🏗️</span>
+                        <h3 class="insight-title">Active Workload</h3>
+                    </div>
+                    <div class="insight-content">
+                        Current projects in progress.
+                        <div class="insight-metric">${activeProjects} projects</div>
+                        <p>Consider your capacity when starting new projects to maintain quality and avoid burnout.</p>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <span class="insight-icon">🤖</span>
+                        <h3 class="insight-title">Agent Team Status</h3>
+                    </div>
+                    <div class="insight-content">
+                        Your OpenClaw agent team is actively supporting your mission.
+                        <div class="insight-metric">${state.agents.length} agents</div>
+                        <p>All agents are monitored in real-time. Check the Agents tab for detailed health metrics.</p>
+                    </div>
                 </div>
             `;
-
-            elements.timelineContainer.innerHTML = timelineHTML;
+            elements.insightsContainer.innerHTML = insightsHTML;
         }
 
         // Format timestamp for display
@@ -1466,6 +1710,14 @@
             });
         }
 
+        // Format uptime for display
+        function formatUptime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+            return `${Math.floor(seconds / 86400)}d`;
+        }
+
         // Add a new task
         function addTask(status) {
             const title = prompt('Enter task title:');
@@ -1475,7 +1727,7 @@
                 
                 // This would normally make an API call to the VPS
                 console.log('Adding task:', { title, description, priority, status });
-                alert('Task added! (This would normally sync with your VPS)');
+                showNotification('Task added! (This would normally sync with your VPS)', 'success');
             }
         }
 
@@ -1483,7 +1735,90 @@
         function editTask(id) {
             const project = state.projects.find(p => p.id === id);
             if (project) {
-                alert(`Editing task: ${project.title}\n\nThis would open a detailed edit modal in the full implementation.`);
+                showNotification(`Editing task: ${project.title}\n\nThis would open a detailed edit modal in the full implementation.`, 'info');
+            }
+        }
+
+        // Agent management functions
+        function configureAgent(agentId) {
+            showNotification(`Configure agent: ${agentId}`, 'info');
+        }
+
+        function pauseAgent(agentId) {
+            showNotification(`Pause agent: ${agentId}`, 'warning');
+        }
+
+        function restartAgent(agentId) {
+            showNotification(`Restart agent: ${agentId}`, 'info');
+        }
+
+        // Notification system
+        function setupNotificationSystem() {
+            // Auto-hide notifications after duration
+            setInterval(() => {
+                if (state.notifications.length > 0) {
+                    state.notifications.shift();
+                    updateNotifications();
+                }
+            }, CONFIG.NOTIFICATION_DURATION);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                message,
+                type,
+                timestamp: new Date().toISOString()
+            };
+            state.notifications.push(notification);
+            updateNotifications();
+            
+            // Auto-hide after duration
+            setTimeout(() => {
+                hideNotificationById(notification.id);
+            }, CONFIG.NOTIFICATION_DURATION);
+        }
+
+        function hideNotification() {
+            elements.notificationBanner.classList.remove('show');
+        }
+
+        function hideNotificationById(id) {
+            state.notifications = state.notifications.filter(n => n.id !== id);
+            updateNotifications();
+        }
+
+        function updateNotifications() {
+            if (state.notifications.length > 0) {
+                const latest = state.notifications[state.notifications.length - 1];
+                elements.notificationContent.innerHTML = latest.message;
+                elements.notificationBanner.className = `notification-banner show ${latest.type}`;
+                elements.notificationBanner.style.display = 'block';
+            } else {
+                elements.notificationBanner.classList.remove('show');
+                setTimeout(() => {
+                    elements.notificationBanner.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Alert checking system
+        function checkAlerts() {
+            // Check for critical alerts
+            if (state.metrics && state.metrics.daysToGoal < 300) {
+                showNotification('⚠️ Critical: Days to goal is below 300!', 'warning');
+            }
+            
+            // Check agent health
+            if (state.agents) {
+                state.agents.forEach(agent => {
+                    if (agent.health.cpu > 90) {
+                        showNotification(`⚠️ Agent ${agent.name} CPU usage is critical (${agent.health.cpu}%)`, 'error');
+                    }
+                    if (agent.health.responseTime > 500) {
+                        showNotification(`⚠️ Agent ${agent.name} response time is slow (${agent.health.responseTime}ms)`, 'warning');
+                    }
+                });
             }
         }
 
@@ -1494,6 +1829,9 @@
         window.togglePriority = togglePriority;
         window.addTask = addTask;
         window.editTask = editTask;
+        window.configureAgent = configureAgent;
+        window.pauseAgent = pauseAgent;
+        window.restartAgent = restartAgent;
     </script>
 </body>
 </html>
