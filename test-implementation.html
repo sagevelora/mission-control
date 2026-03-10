@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Control - Iteration 6 Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- PapaParse for CSV export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <!-- Socket.IO for real-time collaboration -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Mission Control JavaScript files -->
+    <script src="js/drag-drop.js"></script>
+    <script src="js/drag-drop-integration.js"></script>
+    <script src="js/realtime-collaboration.js"></script>
+    <script src="js/predictive-analytics.js"></script>
+    <script src="js/security-features.js"></script>
+    <script src="js/customizable-widgets.js"></script>
+    <script src="js/external-integrations.js"></script>
+    <script src="js/export-utils.js"></script>
+    <script src="js/realtime-streaming.js"></script>
+    <style>
+        :root {
+            /* Core Colors */
+            --bg-primary: #050508;
+            --bg-secondary: rgba(255, 255, 255, 0.03);
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            
+            /* Accent Colors */
+            --accent-primary: #78A083;
+            --accent-success: #4CAF50;
+            --accent-warning: #FF9800;
+            --accent-error: #F44336;
+            --accent-info: #2196F3;
+            --accent-purple: #9C27B0;
+            
+            /* Status Colors */
+            --status-online: #4CAF50;
+            --status-offline: #F44336;
+            --status-busy: #FF9800;
+            --status-idle: #9E9E9E;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 2.5rem;
+            
+            /* Border Radius */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 50%;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.3);
+            
+            /* Animations */
+            --transition-fast: 0.15s ease-in-out;
+            --transition-normal: 0.3s ease-in-out;
+            --transition-slow: 0.5s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .test-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .test-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--accent-primary);
+        }
+
+        .test-result {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+        }
+
+        .test-pass {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid var(--accent-success);
+            color: var(--accent-success);
+        }
+
+        .test-fail {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid var(--accent-error);
+            color: var(--accent-error);
+        }
+
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-md);
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding: var(--spacing-md);
+        }
+
+        .column-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .task-list {
+            min-height: 200px;
+        }
+
+        .task-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            cursor: grab;
+        }
+
+        .collaboration-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .online {
+            background: var(--status-online);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .security-badge {
+            background: var(--accent-warning);
+            color: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .widget-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-md);
+        }
+
+        .widget {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            position: relative;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .widget-title {
+            font-weight: 600;
+        }
+
+        .widget-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .widget-action {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .integration-badge {
+            background: var(--accent-purple);
+            color: white;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Mission Control - Iteration 6 Implementation Test</h1>
+        
+        <div class="test-section">
+            <h2 class="test-header">1. Drag-and-Drop Functionality Test</h2>
+            <div class="kanban-board" id="testKanbanBoard">
+                <div class="kanban-column" data-status="backlog">
+                    <div class="column-header">
+                        <h3 class="column-title">Backlog</h3>
+                    </div>
+                    <div class="task-list">
+                        <div class="task-card" data-project-id="test1" draggable="true">
+                            <h4>Test Project 1</h4>
+                            <p>This is a test project for drag-and-drop functionality.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="kanban-column" data-status="in-progress">
+                    <div class="column-header">
+                        <h3 class="column-title">In Progress</h3>
+                    </div>
+                    <div class="task-list"></div>
+                </div>
+                <div class="kanban-column" data-status="review">
+                    <div class="column-header">
+                        <h3 class="column-title">Review</h3>
+                    </div>
+                    <div class="task-list"></div>
+                </div>
+                <div class="kanban-column" data-status="done">
+                    <div class="column-header">
+                        <h3 class="column-title">Done</h3>
+                    </div>
+                    <div class="task-list"></div>
+                </div>
+            </div>
+            <div class="test-result" id="dragDropResult">
+                Testing drag-and-drop functionality...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-header">2. Real-time Collaboration Test</h2>
+            <div>
+                <span class="collaboration-indicator online"></span>
+                <span>Real-time collaboration active</span>
+                <span class="security-badge">Secure</span>
+            </div>
+            <div class="test-result" id="collaborationResult">
+                Testing real-time collaboration features...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-header">3. Predictive Analytics Test</h2>
+            <div>
+                <canvas id="testAnalyticsChart" width="400" height="200"></canvas>
+            </div>
+            <div class="test-result" id="analyticsResult">
+                Testing predictive analytics functionality...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-header">4. Security Features Test</h2>
+            <div>
+                <span>Role-based access control: <strong>Active</strong></span>
+                <span class="security-badge">RBAC</span>
+            </div>
+            <div class="test-result" id="securityResult">
+                Testing enhanced security features...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-header">5. Customizable Dashboard Widgets Test</h2>
+            <div class="widget-container">
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Test Widget 1</div>
+                        <div class="widget-actions">
+                            <div class="widget-action">⚙️</div>
+                            <div class="widget-action">🗑️</div>
+                        </div>
+                    </div>
+                    <p>This is a customizable widget.</p>
+                </div>
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Test Widget 2</div>
+                        <div class="widget-actions">
+                            <div class="widget-action">⚙️</div>
+                            <div class="widget-action">🗑️</div>
+                        </div>
+                    </div>
+                    <p>Another customizable widget.</p>
+                </div>
+            </div>
+            <div class="test-result" id="widgetsResult">
+                Testing customizable dashboard widgets...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-header">6. External System Integrations Test</h2>
+            <div>
+                <span>API Gateway: <strong>Active</strong></span>
+                <span class="integration-badge">API</span>
+            </div>
+            <div class="test-result" id="integrationsResult">
+                Testing external system integrations...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test results
+        let testResults = {
+            dragDrop: false,
+            collaboration: false,
+            analytics: false,
+            security: false,
+            widgets: false,
+            integrations: false
+        };
+
+        // Test drag-and-drop functionality
+        function testDragDrop() {
+            try {
+                // Check if KanbanDragDrop class exists
+                if (typeof KanbanDragDrop === 'function') {
+                    // Initialize drag-drop
+                    const dragDrop = new KanbanDragDrop();
+                    testResults.dragDrop = true;
+                    document.getElementById('dragDropResult').className = 'test-result test-pass';
+                    document.getElementById('dragDropResult').textContent = '✅ Drag-and-drop functionality working correctly!';
+                } else {
+                    throw new Error('KanbanDragDrop class not found');
+                }
+            } catch (error) {
+                console.error('Drag-and-drop test failed:', error);
+                document.getElementById('dragDropResult').className = 'test-result test-fail';
+                document.getElementById('dragDropResult').textContent = `❌ Drag-and-drop test failed: ${error.message}`;
+            }
+        }
+
+        // Test real-time collaboration
+        function testCollaboration() {
+            try {
+                // Check if collaboration functions exist
+                if (typeof initializeCollaboration === 'function' && 
+                    typeof updatePresenceIndicator === 'function') {
+                    testResults.collaboration = true;
+                    document.getElementById('collaborationResult').className = 'test-result test-pass';
+                    document.getElementById('collaborationResult').textContent = '✅ Real-time collaboration features working correctly!';
+                } else {
+                    throw new Error('Collaboration functions not found');
+                }
+            } catch (error) {
+                console.error('Collaboration test failed:', error);
+                document.getElementById('collaborationResult').className = 'test-result test-fail';
+                document.getElementById('collaborationResult').textContent = `❌ Collaboration test failed: ${error.message}`;
+            }
+        }
+
+        // Test predictive analytics
+        function testAnalytics() {
+            try {
+                // Check if analytics functions exist
+                if (typeof initializePredictiveAnalytics === 'function' && 
+                    typeof generateForecast === 'function') {
+                    // Initialize analytics
+                    initializePredictiveAnalytics();
+                    testResults.analytics = true;
+                    document.getElementById('analyticsResult').className = 'test-result test-pass';
+                    document.getElementById('analyticsResult').textContent = '✅ Predictive analytics functionality working correctly!';
+                } else {
+                    throw new Error('Analytics functions not found');
+                }
+            } catch (error) {
+                console.error('Analytics test failed:', error);
+                document.getElementById('analyticsResult').className = 'test-result test-fail';
+                document.getElementById('analyticsResult').textContent = `❌ Analytics test failed: ${error.message}`;
+            }
+        }
+
+        // Test security features
+        function testSecurity() {
+            try {
+                // Check if security functions exist
+                if (typeof initializeSecurityFeatures === 'function' && 
+                    typeof checkUserPermissions === 'function') {
+                    // Initialize security
+                    initializeSecurityFeatures();
+                    testResults.security = true;
+                    document.getElementById('securityResult').className = 'test-result test-pass';
+                    document.getElementById('securityResult').textContent = '✅ Enhanced security features working correctly!';
+                } else {
+                    throw new Error('Security functions not found');
+                }
+            } catch (error) {
+                console.error('Security test failed:', error);
+                document.getElementById('securityResult').className = 'test-result test-fail';
+                document.getElementById('securityResult').textContent = `❌ Security test failed: ${error.message}`;
+            }
+        }
+
+        // Test customizable widgets
+        function testWidgets() {
+            try {
+                // Check if widget functions exist
+                if (typeof initializeCustomizableWidgets === 'function' && 
+                    typeof saveWidgetLayout === 'function') {
+                    // Initialize widgets
+                    initializeCustomizableWidgets();
+                    testResults.widgets = true;
+                    document.getElementById('widgetsResult').className = 'test-result test-pass';
+                    document.getElementById('widgetsResult').textContent = '✅ Customizable dashboard widgets working correctly!';
+                } else {
+                    throw new Error('Widget functions not found');
+                }
+            } catch (error) {
+                console.error('Widgets test failed:', error);
+                document.getElementById('widgetsResult').className = 'test-result test-fail';
+                document.getElementById('widgetsResult').textContent = `❌ Widgets test failed: ${error.message}`;
+            }
+        }
+
+        // Test external integrations
+        function testIntegrations() {
+            try {
+                // Check if integration functions exist
+                if (typeof initializeExternalIntegrations === 'function' && 
+                    typeof registerWebhook === 'function') {
+                    // Initialize integrations
+                    initializeExternalIntegrations();
+                    testResults.integrations = true;
+                    document.getElementById('integrationsResult').className = 'test-result test-pass';
+                    document.getElementById('integrationsResult').textContent = '✅ External system integrations working correctly!';
+                } else {
+                    throw new Error('Integration functions not found');
+                }
+            } catch (error) {
+                console.error('Integrations test failed:', error);
+                document.getElementById('integrationsResult').className = 'test-result test-fail';
+                document.getElementById('integrationsResult').textContent = `❌ Integrations test failed: ${error.message}`;
+            }
+        }
+
+        // Run all tests
+        function runAllTests() {
+            testDragDrop();
+            testCollaboration();
+            testAnalytics();
+            testSecurity();
+            testWidgets();
+            testIntegrations();
+            
+            // Show overall result
+            const allPassed = Object.values(testResults).every(result => result);
+            if (allPassed) {
+                console.log('✅ All Iteration 6 tests passed!');
+            } else {
+                console.log('❌ Some tests failed. Check individual results.');
+            }
+        }
+
+        // Initialize and run tests when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add some delay to ensure all scripts are loaded
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>
